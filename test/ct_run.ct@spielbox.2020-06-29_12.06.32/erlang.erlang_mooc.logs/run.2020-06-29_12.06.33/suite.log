@@ -1,0 +1,33 @@
+=== Suite started at 2020-06-29 12:06:33
+=== Starting test, 1 test cases
+=cases         1
+=user          roblaing
+=host          spielbox
+=hosts         spielbox 
+=emulator_vsn  10.7
+=emulator      beam
+=otp_release   22
+=started       2020-06-29 12:06:33
+=case          frequency_SUITE:init_per_suite
+=logfile       frequency_suite.init_per_suite.html
+=started       2020-06-29 12:06:33
+=ended         2020-06-29 12:06:33
+=result        ok
+=elapsed       9.95e-4
+=== 
+=case          frequency_SUITE:test1
+=started       2020-06-29 12:06:33
+=result        auto_skipped: init_per_suite bad return value
+=== *** Skipping test case #1 {frequency_SUITE,test1} ***
+=== 
+=case          frequency_SUITE:end_per_suite
+=started       2020-06-29 12:06:33
+=result        auto_skipped: init_per_suite bad return value
+=== *** Skipping {frequency_SUITE,end_per_suite} ***
+=== TEST COMPLETE, 0 ok, 0 failed, 1 skipped of 1 test cases
+
+=finished      2020-06-29 12:06:33
+=failed        0
+=successful    0
+=user_skipped  0
+=auto_skipped  1

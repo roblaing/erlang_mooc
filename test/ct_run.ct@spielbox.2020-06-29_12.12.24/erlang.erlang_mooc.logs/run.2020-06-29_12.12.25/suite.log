@@ -1,0 +1,36 @@
+=== Suite started at 2020-06-29 12:12:25
+=== Starting test, 1 test cases
+=cases         1
+=user          roblaing
+=host          spielbox
+=hosts         spielbox 
+=emulator_vsn  10.7
+=emulator      beam
+=otp_release   22
+=started       2020-06-29 12:12:25
+=case          frequency_SUITE:init_per_suite
+=logfile       frequency_suite.init_per_suite.html
+=started       2020-06-29 12:12:25
+=ended         2020-06-29 12:12:25
+=result        ok
+=elapsed       0.001007
+=case          frequency_SUITE:test1
+=logfile       frequency_suite.test1.html
+=started       2020-06-29 12:12:25
+=ended         2020-06-29 12:12:25
+=result        ok
+=elapsed       0.025329
+=case          frequency_SUITE:end_per_suite
+=logfile       frequency_suite.end_per_suite.html
+=started       2020-06-29 12:12:25
+=ended         2020-06-29 12:12:25
+=result        ok
+=elapsed       8.9e-5
+=group_time    0.084s
+=== TEST COMPLETE, 1 ok, 0 failed of 1 test cases
+
+=finished      2020-06-29 12:12:25
+=failed        0
+=successful    1
+=user_skipped  0
+=auto_skipped  0

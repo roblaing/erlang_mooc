@@ -1,4 +1,6 @@
 %% @doc I've used <a href="http://erlang.org/doc/apps/edoc/chapter.html">Edoc</a> comment conventions.
+%%
+%% EUnit tests can be run with <code>frequency:test()</code>
 -module(frequency).
 -export([ start/0
         , stop/0
@@ -22,6 +24,7 @@ init() ->
   loop({[10,11,12,13,14,15], []}).
 
 loop(State0) ->
+  % timer:sleep(1500), % simulate busy server
   receive
     {request, From, allocate} ->
       {State1, Reply} = allocate(State0, From),
@@ -35,6 +38,14 @@ loop(State0) ->
       From ! {reply, self(), stopped}
   end.
 
+clear() ->
+  receive
+    Msg -> 
+      io:format("Received ~p after timeout~n", [Msg]), 
+      clear()
+  after 0 -> ok
+  end.
+
 -spec allocate() -> {ok, Freq::integer()} | {error, no_frequency}.
 %% @doc allocate a frequency, if possible.
 allocate() ->
@@ -42,7 +53,7 @@ allocate() ->
   frequency ! {request, self(), allocate},
   receive
     {reply, Pid, Reply} -> Reply
-  after 1000 -> io:format("No response for allocate...~n") 
+  after 1000 -> clear()
   end.
 
 -spec deallocate(Freq::integer()) -> ok.
@@ -52,16 +63,19 @@ deallocate(Freq) ->
   frequency ! {request, self(), {deallocate, Freq}},
   receive
     {reply, Pid, Reply} -> Reply
+  after 1000 -> clear()
   end.
 
 -spec stop() -> stopped.
 %% @doc end listening loop.
 stop() ->
   Pid = whereis(frequency),  
-  io:format("Terminating...~n"),
   frequency ! {request, self(), stop},
   receive
-    {reply, Pid, Reply} -> Reply
+    {reply, Pid, Reply} -> 
+      io:format("Terminating...~n"),
+      Reply
+  after 1000 -> clear()
   end.
 
 -spec allocate(State0::state(), Pid::pid()) -> {State1::state(), {ok, Freq::integer()} | {error, no_frequency}}.
@@ -80,6 +94,7 @@ deallocate({Free, Allocated}, Freq) ->
   end.
 
 %% frequency:test().
+%% fails unless timer:sleep(1500) is commented out of loop(State).
 frequency1_test_() ->
   [ ?_assertEqual(start(), true)
   , ?_assertEqual(allocate(), {ok, 10})
