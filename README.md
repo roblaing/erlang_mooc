@@ -43,13 +43,6 @@ Running <code>make doc</code> will use <a href="http://erlang.org/doc/apps/edoc/
 Running <code>make test</code> will use <a href="https://erlang.org/doc/apps/common_test/introduction.html">Common Test</a>
 to run <code>test/foo_SUITE.erl</code> files whose results you can view by pointint your browser to <code>test/index.html</code>. 
 
-One advantage of Erlang not being a 
-<a href="https://www.tiobe.com/tiobe-index/">top of the pops progamming language</a>
-is it doesn't suffer as much from the <em>too many tools</em> problem, but there is nevertheless plenty of confusion. I've
-used <a href="http://erlang.org/doc/apps/eunit/chapter.html">EUnit</a> rather than 
-<a href="https://erlang.org/doc/apps/common_test/introduction.html">Common Test</a> in some cases since it's easier for
-small projects.
-
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
 <q>Identify the information that must be represented and how it is represented in the chosen programming language. 
@@ -172,7 +165,7 @@ The quip <q>fake it till you make it</q> is often used here.
 Without a stub to fool the compiler, we can't proceed with test-driven development.
 
 All we want at this is stage is something with the same names and arity as our functions in our <em>wish list</em> whose
-return values are of the correct type (typically hard-coded in a stub to give what is probably the wrong answer).
+return values are of the correct type (typically a hard-coded return value to give usually a wrong answer).
 
 Warnings about variables in the header that are not used in the body are fine, in fact a handy reminder this is just work
 in progress. 
@@ -184,11 +177,37 @@ in progress.
 The first thing I tend to look for in documentation when learning an unfamiliar function is a simple example of how to use it.
 
 Besides creating good documentation, example-driven development (a phrase I prefer to test-driven development since you need
-to think of examples to create tests) helps produce better code.
+to think of examples before you can write tests) helps develop better final code.
+
+One advantage of Erlang not being a <a href="https://www.tiobe.com/tiobe-index/">top of the pops progamming language</a>
+is it doesn't suffer as much from the <em>too many tools</em> problem, but there is nevertheless plenty of confusion. 
+
+I've used <a href="http://erlang.org/doc/apps/eunit/chapter.html">EUnit</a> rather than 
+<a href="https://erlang.org/doc/apps/common_test/introduction.html">Common Test</a> in some cases since it's easier for
+small projects.
+
+In an ideal world, the test and document tools would be integrated. Edoc isn't linked to any test framework I know of, so it's good
+practice to copy at least one illustrative example of each public function into its comment header for EDoc to put into the html.
 
 <h2>4. Function Template</h2>
 
+<q>Translate the data definitions into an outline of the function.</q>
+
+Here we move from "what" to "how", looking at which architectural patterns fit the problem at hand.
+
+Erlang's <a href="https://erlang.org/doc/design_principles/des_princ.html">OTP design principles</a> with its
+<code>-behaviour(X)</code> attribute encourages good practice here.
+
+A nice thing about Erlang is it encourges top-down design of big systems rather than the myopia of bottom-up design.
+
 <h2>5. Function Definition</h2>
 
+<q>Fill in the gaps in the function template. Exploit the purpose statement and the examples.</q>
+
 <h2>6. Testing</h2>
+
+<q>Articulate the examples as tests and ensure that the function passes all. Doing so discovers mistakes. 
+Tests also supplement examples in that they help others read and understand the definition when the need 
+arises—and it will arise for any serious program.</q>
+
 
