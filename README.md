@@ -9,7 +9,7 @@ who is also co-author of O'Reilly's Erlang Programming book which the courses co
 </ol>
 
 Something I got converted to by an online course on open-source Lisp-dialect Racket using the free and excellent
-<a href="https://htdp.org">How to Design Programs</a> textbook with its <a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._sec~3asystematic-design%29">six step recipe</a> is test-driven development &mdash;
+<a href="https://htdp.org">How to Design Programs</a> (HTDP) textbook with its <a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._sec~3asystematic-design%29">six step recipe</a> is test-driven development &mdash;
 a hard habit to develop unless started early &mdash; and generally 
 <a href="https://lamport.azurewebsites.net/tla/tla.html">thinking above the code</a> (meta progamming, if you like jargon).
 
@@ -17,7 +17,7 @@ Erlang has excellent tools for all this &mdash; probably more so than Racket whi
 but one criticism I have of Professor Thompson's course is while he touches on specifications, documentation, and testing, he
 doesn't give them the supremacy I feel the deserve.
 
-To train myself in Erlang concurrently (pun intended) with its specification, typing, documentation and various testing tools,
+To train myself in Erlang while developing the good habits of the HTDP school,
 I structured my <a href="https://erlang.org/doc/design_principles/applications.html#directory-structure">subdirectories</a>
 roughly according to the recommendations:
 
@@ -32,8 +32,8 @@ roughly according to the recommendations:
   └── test
 </pre></code> 
 
-I've created my own <a href="https://www.gnu.org/software/make/manual/make.html">Makefile</a> to sidestep the over-elaborations
-or rebar3 and other Erlang third-party build tools.
+I've created my own small <a href="https://www.gnu.org/software/make/manual/make.html">Makefile</a> to keep things simpler than
+<a href="https://www.rebar3.org/">rebar3</a> or <a href="https://erlang.mk/">erlang.mk</a>.
 
 Running <code>make</code> will compile <code>src/foo.erl</code> into <code>ebin/food.beam</code>.
 
@@ -52,6 +52,9 @@ small projects.
 
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
+<q>Identify the information that must be represented and how it is represented in the chosen programming language. 
+Formulate data definitions and illustrate them with examples.</q>
+
 The general advice for the first step is to step away from your computer and design with a pencil and paper. As someone more
 comfortable with a keyboard who can't read his own handwriting, I find working with
 <a href="https://graphviz.org/">graphviz</a>, <a href="https://d3js.org/">D3</a>, or simply waffling away in a text editor
@@ -62,27 +65,33 @@ my dad via a paper calendar, "THINK".
 
 <h2>2. Signature, Purpose Statement, Header</h2>
 
-A reason the HTDP recipe bundles these three together is they need to be done concurrently.
+A reason the HTDP recipe bundles these three together is they need to be done concurrently. Since the guts of a program
+is likely to change often as you get more experienced with a given language &mdash; with your code hopefully getting
+shorter and faster as your knowledge grows &mdash; it's vital to think "what" rather than "how" first. 
 
 <h3>2.1 Signature</h3>
 
-What HTDP terms <em>signatures</em> are also commonly known as <em>contracts</em>, or <em>specifications</em>, the jargon
+<q>State what kind of data the desired function consumes and produces.</q>
+
+What HTDP terms <em>signatures</em> are also commonly known as <em>APIs</em>, <em>contracts</em>, 
+or <em>specifications</em>, the jargon
 used in Erlang's <a href="https://erlang.org/doc/reference_manual/typespec.html">
 <code>-spec</code> and <code>-type</code></a> annotations.
 
-A key part of this is thinking in terms of <em>sets</em> (as explained in the brilliant lesson by 
-<a href="https://www.youtube.com/watch?v=JsduHKckB04">Eddie Woo</a>), or <em>types</em> as sets are known in computer science.
+Here we think in terms of <em>sets</em> (as explained in the brilliant lesson by 
+<a href="https://www.youtube.com/watch?v=JsduHKckB04">Eddie Woo</a>), or <em>types</em> as sets are known in computer science,
+and operations on these sets.
 
-Erlang encourages this with its <a href="http://erlang.org/doc/apps/dialyzer/dialyzer_chapter.html">dialyzer</a> and
+Erlang promotes this thinking with its <a href="http://erlang.org/doc/apps/dialyzer/dialyzer_chapter.html">dialyzer</a> and
 <a href="http://erlang.org/doc/man/typer.html">typer</a> tools.
 
-<q>Tip: use <code>typer foo.erl</code> to check your <code>-spec ...</code> statements by commenting them out after you've written them. Regard it as a testing tool, not a substitute for thinking.</q>
+<eme>Tip: use <code>typer foo.erl</code> to check your <code>-spec ...</code> statements by commenting them out after you've written them. Regard it as a testing tool, not a substitute for thinking.</em>
 
 As with any programming language, Erlang has a 
 <a href="https://www.cs.tufts.edu/~nr/cs257/archive/barbara-liskov/data-abstraction-and-hierarchy.pdf">type hirarchy</a>, 
 a phrase I think Turing-award winner Barbara Liskov coined.
 
-My type hirarchy for Erlang (work in progress) looks like this:
+I've diagramed Erlang's type hirarchy (work in progress) like this:
 
 <code><pre>
 any()
@@ -137,13 +146,45 @@ joke checklist</a> a handy reference. Erlang checks the box for <em>dynamically-
 (the creators of the list ommited <em>optionally-typed</em>), which means it has lots of <code>is_type(X)</code> built-in functions
 (BIFs in Erlang jargon).
 
-A reason "serious" programmers hate dynamically-typed languages is that unless the author of a library deigned to throw users a frickin' bone by explaining what type the inputs and outputs of their functions are in their documentation, their work is unusable.
-
 <h3>2.2 Purpose Statement</h3>
+
+<q>Formulate a concise answer to the question what the function computes.</q>
+
+In the case of <a href="http://erlang.org/doc/apps/edoc/chapter.html">Edoc</a>, any comment like
+
+<code><pre>
+%% @doc Purpose statement goes here...
+myfunc(Arg1,...) ->
+  ...
+</pre></code>
+
+The automatically generated html will then include this statement in the <em>Function Index</em> table and in the 
+<em>Function Details</em>.
+
+Besides being helpful to users, writing purpose statements also helps one think of 
+suitable names for functions and their arguments to help make code self documenting.
 
 <h3>2.3 Header</h3>
 
+<q>Define a stub that lives up to the signature.</q>
+
+The quip <q>fake it till you make it</q> is often used here. 
+Without a stub to fool the compiler, we can't proceed with test-driven development.
+
+All we want at this is stage is something with the same names and arity as our functions in our <em>wish list</em> whose
+return values are of the correct type (typically hard-coded in a stub to give what is probably the wrong answer).
+
+Warnings about variables in the header that are not used in the body are fine, in fact a handy reminder this is just work
+in progress. 
+
 <h2>3. Functional Examples</h2>
+
+<q>Work through examples that illustrate the function’s purpose.</q>
+
+The first thing I tend to look for in documentation when learning an unfamiliar function is a simple example of how to use it.
+
+Besides creating good documentation, example-driven development (a phrase I prefer to test-driven development since you need
+to think of examples to create tests) helps produce better code.
 
 <h2>4. Function Template</h2>
 
