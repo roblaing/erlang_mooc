@@ -9,9 +9,7 @@ who is also co-author of O'Reilly's Erlang Programming book which the courses co
 </ol>
 
 Something I got converted to by an online course on open-source Lisp-dialect Racket using the free and excellent
-<a href="https://htdp.org">How to Design Programs</a> (HTDP) textbook with its <a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._sec~3asystematic-design%29">six step recipe</a> is test-driven development &mdash;
-a hard habit to develop unless started early &mdash; and generally 
-<a href="https://lamport.azurewebsites.net/tla/tla.html">thinking above the code</a> (meta progamming, if you like jargon).
+<a href="https://htdp.org">How to Design Programs</a> (HTDP) textbook is its <a href="https://htdp.org/2020-5-6/Book/part_preface.html#%28part._sec~3asystematic-design%29">six step recipe</a> which I've used to structure this README below.
 
 Erlang has excellent tools for all this &mdash; probably more so than Racket which doesn't encourage modularisation much &mdash;
 but one criticism I have of Professor Thompson's course is while he touches on specifications, documentation, and testing, he
