@@ -33,13 +33,13 @@ roughly according to the recommendations:
 I've created my own small <a href="https://www.gnu.org/software/make/manual/make.html">Makefile</a> to keep things simpler than
 <a href="https://www.rebar3.org/">rebar3</a> or <a href="https://erlang.mk/">erlang.mk</a>.
 
-Running <code>make</code> will compile <code>src/foo.erl</code> into <code>ebin/food.beam</code>.
+Running <code>make</code> will compile <code>src/foo.erl</code> into <code>ebin/foo.beam</code>.
 
 Running <code>make doc</code> will use <a href="http://erlang.org/doc/apps/edoc/chapter.html">EDoc</a> to create
 <code>doc/index.html</code> and related content which can be viewed by pointing your browser there.
 
 Running <code>make test</code> will use <a href="https://erlang.org/doc/apps/common_test/introduction.html">Common Test</a>
-to run <code>test/foo_SUITE.erl</code> files whose results you can view by pointint your browser to <code>test/index.html</code>. 
+to run <code>test/foo_SUITE.erl</code> files whose results you can view by pointing your browser to <code>test/index.html</code>. 
 
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
@@ -58,7 +58,7 @@ my dad via a paper calendar, "THINK".
 
 A reason the HTDP recipe bundles these three together is they need to be done concurrently. Since the guts of a program
 is likely to change often as you get more experienced with a given language &mdash; with your code hopefully getting
-shorter and faster as your knowledge grows &mdash; it's vital to think "what" rather than "how" first. 
+shorter and faster as your knowledge grows &mdash; it's vital to focus on "what" rather than "how" first. 
 
 <h3>2.1 Signature</h3>
 
@@ -69,16 +69,16 @@ or <em>specifications</em>, the jargon
 used in Erlang's <a href="https://erlang.org/doc/reference_manual/typespec.html">
 <code>-spec</code> and <code>-type</code></a> annotations.
 
-Here we think in terms of <em>sets</em> (as explained in the brilliant lesson by 
+Here we think in terms of <em>sets</em> (as explained in a brilliant lesson by 
 <a href="https://www.youtube.com/watch?v=JsduHKckB04">Eddie Woo</a>), or <em>types</em> as sets are known in computer science,
 and operations on these sets.
 
 Erlang promotes this thinking with its <a href="http://erlang.org/doc/apps/dialyzer/dialyzer_chapter.html">dialyzer</a> and
 <a href="http://erlang.org/doc/man/typer.html">typer</a> tools.
 
-<eme>Tip: use <code>typer foo.erl</code> to check your <code>-spec ...</code> statements by commenting them out after you've written them. Regard it as a testing tool, not a substitute for thinking.</em>
+<em>Tip: use <code>typer foo.erl</code> to check your <code>-spec ...</code> statements by commenting them out after you've written them. Regard it as a testing tool, not a substitute for thinking.</em>
 
-As with any programming language, Erlang has a 
+As does any programming language, Erlang has a 
 <a href="https://www.cs.tufts.edu/~nr/cs257/archive/barbara-liskov/data-abstraction-and-hierarchy.pdf">type hirarchy</a>, 
 a phrase I think Turing-award winner Barbara Liskov coined.
 
@@ -191,9 +191,9 @@ practice to copy at least one illustrative example of each public function into 
 
 <q>Translate the data definitions into an outline of the function.</q>
 
-Here we move from "what" to "how", looking at which architectural patterns fit the problem at hand.
+Here we move from "what" to "how", exploring which architectural patterns fit the problem at hand.
 
-Erlang's <a href="https://erlang.org/doc/design_principles/des_princ.html">OTP design principles</a> with its
+Erlang's <a href="https://erlang.org/doc/design_principles/des_princ.html">OTP design principles</a> with their
 <code>-behaviour(X)</code> attribute encourages good practice here.
 
 A nice thing about Erlang is it encourges top-down design of big systems rather than the myopia of bottom-up design.
