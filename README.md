@@ -20,7 +20,7 @@ I structured my <a href="https://erlang.org/doc/design_principles/applications.h
 roughly according to the recommendations:
 
 <code><pre>
-─ <here>
+─ myproject
   ├── Makefile
   ├── doc
   │   └── overview.edoc
