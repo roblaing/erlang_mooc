@@ -13,7 +13,7 @@ Something I got converted to by an online course on open-source Lisp-dialect Rac
 
 Erlang has excellent tools for all this &mdash; probably more so than Racket which doesn't encourage modularisation much &mdash;
 but one criticism I have of Professor Thompson's course is while he touches on specifications, documentation, and testing, he
-doesn't give them the supremacy I feel the deserve.
+doesn't give them the supremacy I feel they deserve.
 
 To train myself in Erlang while developing the good habits of the HTDP school,
 I structured my <a href="https://erlang.org/doc/design_principles/applications.html#directory-structure">subdirectories</a>
@@ -139,7 +139,7 @@ joke checklist</a> a handy reference. Erlang checks the box for <em>dynamically-
 
 <h3>2.2 Purpose Statement</h3>
 
-<q>Formulate a concise answer to the question what the function computes.</q>
+<q>Formulate a concise answer to the question <em>what</em> the function computes.</q>
 
 In the case of <a href="http://erlang.org/doc/apps/edoc/chapter.html">Edoc</a>, any comment like
 
@@ -150,7 +150,7 @@ myfunc(Arg1,...) ->
 </pre></code>
 
 will then be included in the <em>Function Index</em> table and in the <em>Function Details</em> of the 
-automatically generated html.
+module's automatically generated html.
 
 Besides being helpful to users, writing purpose statements also helps one think of 
 suitable names for functions and their arguments to help make code self documenting.
