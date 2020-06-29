@@ -151,8 +151,8 @@ myfunc(Arg1,...) ->
   ...
 </pre></code>
 
-The automatically generated html will then include this statement in the <em>Function Index</em> table and in the 
-<em>Function Details</em>.
+will then be included in the <em>Function Index</em> table and in the <em>Function Details</em> of the 
+automatically generated html.
 
 Besides being helpful to users, writing purpose statements also helps one think of 
 suitable names for functions and their arguments to help make code self documenting.

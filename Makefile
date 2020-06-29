@@ -1,6 +1,6 @@
 # A simple Makefile, must use tabs, not spaces, to indent
 ERLC_FLAGS=
-APP_NAME=armstrong
+APP_NAME=futurelearn
 SOURCES=$(wildcard src/*.erl)
 HEADERS=$(wildcard include/*.hrl)
 OBJECTS=$(SOURCES:src/%.erl=ebin/%.beam)
