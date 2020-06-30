@@ -41,6 +41,8 @@ Running <code>make doc</code> will use <a href="http://erlang.org/doc/apps/edoc/
 Running <code>make test</code> will use <a href="https://erlang.org/doc/apps/common_test/introduction.html">Common Test</a>
 to run <code>test/foo_SUITE.erl</code> files whose results you can view by pointing your browser to <code>test/index.html</code>. 
 
+Running <code>erl -pa ebin</code> makes the repl aware your code in the ebin subdirectory.
+
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
 <q>Identify the information that must be represented and how it is represented in the chosen programming language. 
@@ -69,9 +71,9 @@ or <em>specifications</em>, the jargon
 used in Erlang's <a href="https://erlang.org/doc/reference_manual/typespec.html">
 <code>-spec</code> and <code>-type</code></a> annotations.
 
-Here we think in terms of <em>sets</em> (as explained in a brilliant lesson by 
-<a href="https://www.youtube.com/watch?v=JsduHKckB04">Eddie Woo</a>), or <em>types</em> as sets are known in computer science,
-and operations on these sets.
+Here we think in terms of <em>sets</em> (the basic building blocks, ie <em>atoms</em>, of mathematics, 
+as explained in a brilliant lesson by <a href="https://www.youtube.com/watch?v=JsduHKckB04">Eddie Woo</a>), 
+or <em>types</em> as sets are known in computer science, and operations on these sets.
 
 Erlang promotes this thinking with its <a href="http://erlang.org/doc/apps/dialyzer/dialyzer_chapter.html">dialyzer</a> and
 <a href="http://erlang.org/doc/man/typer.html">typer</a> tools.
@@ -109,7 +111,7 @@ any()
 │   ├── list()                     % [any()]
 │   │   ├── nil()                  % []
 │   │   ├── nonempty_list()        % [T, ...]
-│   │   ├── maybe_improper_list(Type1, Type2) % eg [3|3] an improper list means the second part is not a list.
+│   │   ├── maybe_improper_list(Type1, Type2) % eg [3|3] is an improper list
 │   │   ├── proplists:proplist()   % [atom() | tuple()]
 │   │   └── string()               % [char()]
 │   │       └── nonempty_string()
@@ -162,8 +164,8 @@ suitable names for functions and their arguments to help make code self document
 The quip <q>fake it till you make it</q> is often used here. 
 Without a stub to fool the compiler, we can't proceed with test-driven development.
 
-All we want at this is stage is something with the same names and arity as our functions in our <em>wish list</em> whose
-return values are of the correct type (typically a hard-coded return value to give usually a wrong answer).
+All we want at this is stage is something with the same names and arities as our functions in our <em>wish list</em> whose
+return values are of the correct type (typically hard-coded return values to give usually a wrong answer).
 
 Warnings about variables in the header that are not used in the body are fine, in fact a handy reminder this is just work
 in progress. 
