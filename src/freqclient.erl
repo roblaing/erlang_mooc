@@ -57,6 +57,7 @@ random_test(N) ->
 
 simulate(0, _) -> ok;
 simulate(N, []) ->
+  io:format("~p [] ~n", [N]),
   simulate(N-1, [add_client(), add_client(), add_client()]);
 simulate(N, ClientList0) ->
   io:format("~p ~p ~n", [N, ClientList0]),
