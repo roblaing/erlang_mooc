@@ -61,10 +61,11 @@ simulate(N, []) ->
   simulate(N-1, [add_client(), add_client(), add_client()]);
 simulate(N, ClientList0) ->
   io:format("~p ~p ~n", [N, ClientList0]),
-  case rand:uniform(3) of
+  case rand:uniform(4) of
     1 -> ClientList1 = simulate_add(ClientList0);
     2 -> ClientList1 = simulate_delete(ClientList0);
-    3 -> ClientList1 = simulate_kill(ClientList0)
+    3 -> ClientList1 = simulate_kill(ClientList0);
+    4 -> ClientList1 = simulate_add(ClientList0)
   end,
   simulate(N-1, ClientList1).
 
