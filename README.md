@@ -41,7 +41,8 @@ Running <code>make doc</code> will use <a href="http://erlang.org/doc/apps/edoc/
 Running <code>make test</code> will use <a href="https://erlang.org/doc/apps/common_test/introduction.html">Common Test</a>
 to run <code>test/foo_SUITE.erl</code> files whose results you can view by pointing your browser to <code>test/index.html</code>. 
 
-Running <code>erl -pa ebin</code> makes the repl aware of your code in the ebin subdirectory.
+Running <code>erl -pa ebin</code> lets you run the <em>repl</em> from the <em>myproject</em> root directory with the compiled 
+code in the ebin subdirectory in its path.
 
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
