@@ -10,6 +10,112 @@
 <h1>The futurelearn application</h1>
 <p>Home page for my assignments for the University of Kent's Erlang courses offered via Futurelearn.</p>
 
+<h1>Pid Bang</h1>
+
+<p>Thinking in terms of sending and receiving messages rather than return values from functions with arguments I found a bit tricky.</p>
+
+<p>Joe Armstrong in a this youtube video</p>
+
+<p><a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
+https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a></p>
+
+<p>invokes the old Elvis song "Return to sender" as a handy reminder that 
+<a href="https://erlang.org/doc/reference_manual/processes.html">processes</a> sending "arguments" (as messages) to
+other processes need to provide a return address to get the result back in their mailbox. 
+A process can simply give its return address as 
+<a href="https://erlang.org/doc/man/erlang.html#self-0">self()</a>.</p>
+
+<p>For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
+to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.</p>
+
+<p>Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
+block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.</p>
+
+<h2>Parallel Map</h2>
+
+<p>In this youtube video</p>
+
+<p><a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
+https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a></p>
+
+<p>Joe Armstrong provides the following example (he leaves function F out of the argument list for pmap,
+which I assume is a typo):</p>
+
+<p><code><pre>
+function pmap(F, L) -&gt;
+  S = self(),
+  Pids = [do(S, F) || F &lt;- L],
+  [receive {Pid, Val} -&gt; Val end || Pid &lt;- Pids].
+
+do(Parent, F) -&gt;
+  spawn(fun() -&gt; Parent ! {self(), F()} end).
+</pre></code></p>
+
+<h1>Error Handling</h1>
+
+<p>An important difference between Erlang and the Elvis song is if the <em>to address</em> is wrong
+you won't get a bounceback saying <q>... address unknown. No such number, no such zone</q>, 
+so care needs to be taken to avoid waiting at the mailbox for a response that will never come.</p>
+
+<h1>Signal vs Message?</h1>
+
+<p>Signals are not messages in Erlang</p>
+
+<p>When a process terminates abnormally, it sends a signal to all the processes linked to it, with the reason killed.</p>
+
+<p>Signals propogate immediately, and the default behaviour on receiving a signal is to terminate (abnormally) yourself.</p>
+
+<p>Signals and messages are different, but they are connected.</p>
+
+<p>If we're able to deal with a process failing, we need to know when a process has failed, without being killed ourselves.</p>
+
+<p>process_flag(trap_exit, true) to turn some processes into system processes</p>
+
+<p>then exit signals to that process are converted to messages:</p>
+
+<p>{'EXIT', FromPid, Reason}</p>
+
+<h2>Sending exit signals</h2>
+
+<p>Exits happen for all sorts of reasons: eg division by 0, ...</p>
+
+<p>Can be triggered in a process itself by calling exit(Reason).</p>
+
+<p>Can be caused by another process calling exit(Pid, Reason).</p>
+
+<p>Normal termination has the reason normal, any other reason is abnormal.</p>
+
+<p>Dealing with abnormal termination</p>
+
+<p>When a process terminates abnormally, it sends a signal to all the processes linked to it.</p>
+
+<h1>Websocket</h1>
+
+<p>Does trapping apply to websocket?</p>
+
+
+<p>Principle of remote error handling.</p>
+
+<p>Need at least two computers.</p>
+
+<p>Same mechanism for N computers.</p>
+
+<h1>Linking processes</h1>
+
+<p>Call <code>link(Pid)</code> in one process to lin to the process Pid.</p>
+
+<p>If on process fails, linked processes fail too and processes linked to those will also fail.</p>
+
+
+<p>spawn_link</p>
+
+<p>Need just two primitives</p>
+
+<p>link(A, B)</p>
+
+<p>https://s3.us-east-2.amazonaws.com/ferd.erlang-in-anger/text.v1.1.0.pdf</p>
+
+
 
 <hr>
 <div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
