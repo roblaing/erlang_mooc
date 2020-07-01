@@ -2,9 +2,10 @@
 
 <h1>Pid Bang</h1>
 
-Thinking in terms of sending and receiving messages rather than return values from functions with arguments I found a bit tricky.
+Thinking in terms of sending and receiving messages between listening loops rather than return values from functions with 
+arguments I found a bit tricky.
 
-Joe Armstrong in a this youtube video
+Joe Armstrong in this youtube video
 
 <a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
 https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a>
@@ -15,12 +16,6 @@ other processes need to provide a return address to get the result back in their
 A process can simply give its return address as 
 <a href="https://erlang.org/doc/man/erlang.html#self-0">self()</a>.
 
-For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
-to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.
-
-Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
-block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.
-
 <h2>Parallel Map</h2>
 
 In this youtube video
@@ -28,7 +23,7 @@ In this youtube video
 <a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
 https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a>
 
-Joe Armstrong provides the following example (he leaves function F out of the argument list for pmap,
+Joe Armstrong provides the following example (he left function F out of the argument list for pmap,
 which I assume is a typo):
 
 <code><pre>
@@ -40,6 +35,12 @@ function pmap(F, L) ->
 do(Parent, F) ->
   spawn(fun() -> Parent ! {self(), F()} end).
 </pre></code>
+
+For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
+to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.
+
+Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
+block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.
 
 <h1>Error Handling</h1>
 
