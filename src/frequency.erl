@@ -38,7 +38,7 @@ loop(State0) ->
     {request, From, stop} ->
       From ! {reply, self(), stopped};
     {'EXIT', From, Reason} ->
-      io:format("Exited: ~p~n", [Reason]),
+      io:format("~p exited: ~p~n", [From, Reason]),
       State1 = exited(State0, From),
       loop(State1)
   end.

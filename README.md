@@ -41,7 +41,7 @@ Running <code>make doc</code> will use <a href="http://erlang.org/doc/apps/edoc/
 Running <code>make test</code> will use <a href="https://erlang.org/doc/apps/common_test/introduction.html">Common Test</a>
 to run <code>test/foo_SUITE.erl</code> files whose results you can view by pointing your browser to <code>test/index.html</code>. 
 
-Running <code>erl -pa ebin</code> makes the repl aware your code in the ebin subdirectory.
+Running <code>erl -pa ebin</code> makes the repl aware of your code in the ebin subdirectory.
 
 <h2>1. From Problem Analysis to Data Definitions</h2>
 
@@ -121,9 +121,11 @@ any()
 ├── Union
 │   ├── timeout()                  % non_neg_integer() | infinity
 
-├── pid()            % self().            
+├── erlang:dst()
+│   ├── pid()            % self().
+│   ├── port()
+│   └── (RegName :: atom()) | {RegName :: atom(), Node :: node()}
 ├── reference()      % erlang:make_ref().
-├── port()
 ├── fun()            % fun((...) -> Type)
 │   └── function()
 ├── ets:tid()
