@@ -1,5 +1,7 @@
 @doc Home page for my assignments for the University of Kent's Erlang courses offered via Futurelearn.
 
+https://www.youtube.com/watch?v=75g_MGhwd_4&list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&index=5
+
 <h1>Pid Bang</h1>
 
 Thinking in terms of sending and receiving messages between listening loops rather than return values from functions with 
@@ -79,6 +81,11 @@ Normal termination has the reason normal, any other reason is abnormal.
 Dealing with abnormal termination
 
 When a process terminates abnormally, it sends a signal to all the processes linked to it.
+
+<h2>Supervisors</h2>
+
+Supervisors <em>spawn</em> workers.
+
 
 <h1>Websocket</h1>
 

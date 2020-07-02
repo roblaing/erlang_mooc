@@ -12,9 +12,10 @@
 
 <h1>Pid Bang</h1>
 
-<p>Thinking in terms of sending and receiving messages rather than return values from functions with arguments I found a bit tricky.</p>
+<p>Thinking in terms of sending and receiving messages between listening loops rather than return values from functions with 
+arguments I found a bit tricky.</p>
 
-<p>Joe Armstrong in a this youtube video</p>
+<p>Joe Armstrong in this youtube video</p>
 
 <p><a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
 https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a></p>
@@ -24,12 +25,6 @@ https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLK
 other processes need to provide a return address to get the result back in their mailbox. 
 A process can simply give its return address as 
 <a href="https://erlang.org/doc/man/erlang.html#self-0">self()</a>.</p>
-
-<p>For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
-to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.</p>
-
-<p>Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
-block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.</p>
 
 <h2>Parallel Map</h2>
 
@@ -50,6 +45,12 @@ function pmap(F, L) -&gt;
 do(Parent, F) -&gt;
   spawn(fun() -&gt; Parent ! {self(), F()} end).
 </pre></code></p>
+
+<p>For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
+to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.</p>
+
+<p>Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
+block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.</p>
 
 <h1>Error Handling</h1>
 
