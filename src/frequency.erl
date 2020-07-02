@@ -21,7 +21,11 @@ start() ->
 init() ->
   io:format("Starting...~n"),
   process_flag(trap_exit, true),
-  loop({[10,11,12,13,14,15], []}).
+  try loop({[10,11,12,13,14,15], []}) of
+    _ -> ok
+  catch
+    throw:{unknown_message, State} -> loop(State)
+  end.
 
 loop(State0) ->
   receive
@@ -44,7 +48,10 @@ loop(State0) ->
     {'EXIT', From, Reason} ->
       io:format("~p exited: ~p~n", [From, Reason]),
       State1 = exited(State0, From),
-      loop(State1)
+      loop(State1);
+    Unknown ->
+      io:format("Received unknown message ~p~n", [Unknown]),
+      throw({unknown_message, State0})
   end.
 
 clear() ->
@@ -127,6 +134,7 @@ test() ->
   allocate(), 
   allocate(), 
   deallocate(20), % Prints Unallocated frequency 20
+  frequency ! wtf,
   allocate(), 
   allocate(),
   allocate(), 

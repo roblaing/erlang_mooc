@@ -33,7 +33,7 @@ A process can simply give its return address as
 <p><a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
 https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a></p>
 
-<p>Joe Armstrong provides the following example (he leaves function F out of the argument list for pmap,
+<p>Joe Armstrong provides the following example (he left function F out of the argument list for pmap,
 which I assume is a typo):</p>
 
 <p><code><pre>
@@ -52,13 +52,69 @@ to remain alive for repeated messages, it needs to be written as a <em>listening
 <p>Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
 block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.</p>
 
-<h1>Error Handling</h1>
+<h2>after Timeout -&gt; ...</h2>
 
 <p>An important difference between Erlang and the Elvis song is if the <em>to address</em> is wrong
 you won't get a bounceback saying <q>... address unknown. No such number, no such zone</q>, 
 so care needs to be taken to avoid waiting at the mailbox for a response that will never come.</p>
 
-<h1>Signal vs Message?</h1>
+<h1><a href="https://erlang.org/doc/reference_manual/errors.html">Error Handling</a></h1>
+
+<p>Usually, errors are handled by sending either <code>{ok, Value}</code> or <code>{error, Reason}</code> messages.</p>
+
+<h2>Exceptions</h2>
+
+<p>Add exceptions – and exception handling – to deal with</p>
+
+    <p>the case where an unallocated frequency is the subject of a deallocation request,</p>
+
+    <p>the receipt of an unknown message type.</p>
+
+
+<p>Three types of exceptions, each of which creates a different Class for catch:</p>
+
+<p><code><pre>
+try Expr
+catch
+    throw:Term -&gt; Term;
+    exit:Reason -&gt; {'EXIT', Reason}
+    error:Reason:Stk -&gt; {'EXIT', {Reason, Stk}}
+end
+</pre></code></p>
+
+<dl>
+  <dd><a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -&gt; true</a> or 
+      <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -&gt; no_return()</a>
+  </dd>
+  <dt>Used with <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -&gt; true</a>
+      and <a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>
+      to convert exit signals into <code>{'ERROR', From, Reason}</code> message.
+  </dt>
+  <dd><a href="https://erlang.org/doc/man/erlang.html#throw-1">throw(Any) -&gt; no_return()</a></dd>
+  <dt>Used with <a href="https://erlang.org/doc/reference_manual/expressions.html#catch-and-throw">catch</a> expressions
+      which can be enhanced with <a href="https://erlang.org/doc/reference_manual/expressions.html#try">try</a>
+  </dt>
+  <dd><a href="https://erlang.org/doc/man/erlang.html#error-1">error(Reason) -&gt; no_return()</a></dd>
+  <dt>Includes stack trace for debugging</dt>
+</dl>
+
+<p><code><pre>
+eval(Env, {div, Num, Denom}) -&gt;
+  N = eval(Env, Num),
+  D = eval(Env, Denom),
+  case D of
+    0   -&gt; throw(div_by_zero);
+    _NZ -&gt; N div D
+  end;
+
+try eval(Env, Exp) of
+  Res -&gt; Res
+catch
+  throw:div_by_zero -&gt; 0
+end
+</pre></code></p>
+
+<h2>Signal vs Message?</h2>
 
 <p>Signals are not messages in Erlang</p>
 
@@ -89,6 +145,11 @@ so care needs to be taken to avoid waiting at the mailbox for a response that wi
 <p>Dealing with abnormal termination</p>
 
 <p>When a process terminates abnormally, it sends a signal to all the processes linked to it.</p>
+
+<h2>Supervisors</h2>
+
+<p>Supervisors <em>spawn</em> workers.</p>
+
 
 <h1>Websocket</h1>
 
