@@ -18,14 +18,14 @@ loop(E,T) ->
       io:format("talk exited ~s~n", [Reason]),
       NewT = spawn_link(talk,worker,[]),
       register(talk,NewT),
-      io:format("worked re-spawned as Pid ~w.~n",[whereis(talk)]),
+      io:format("talk re-spawned as Pid ~w.~n",[whereis(talk)]),
       loop(E,NewT);
     {'EXIT', E, Reason} ->
       io:format("echo exited ~s~n", [Reason]),
       timer:sleep(1000), 
       NewE = spawn_link(echo,listener,[]),
       register(echo,NewE),
-      io:format("echo re-spawned.~n"),
+      io:format("echo re-spawned as Pid ~w.~n", [whereis(echo)]),
       loop(NewE,T)
   end.
 
