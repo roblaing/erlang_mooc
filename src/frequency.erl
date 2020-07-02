@@ -24,17 +24,21 @@ init() ->
   loop({[10,11,12,13,14,15], []}).
 
 loop(State0) ->
-  % timer:sleep(1500), % simulate busy server
-  % io:format("~p~n", [State0]),
   receive
     {request, From, allocate} ->
       {State1, Reply} = allocate(State0, From),
       From ! {reply, self(), Reply},
       loop(State1);
     {request, From, {deallocate, Freq}} ->
-      State1 = deallocate(State0, Freq),
-      From ! {reply, self(), ok},
-      loop(State1);
+      try deallocate(State0, Freq) of
+        State1 ->
+          From ! {reply, self(), ok},
+          loop(State1)
+      catch
+        throw:unallocated ->
+          From ! {error, self(), unallocated},
+          loop(State0)
+      end;
     {request, From, stop} ->
       From ! {reply, self(), stopped};
     {'EXIT', From, Reason} ->
@@ -67,7 +71,8 @@ deallocate(Freq) ->
   Pid = whereis(frequency),
   frequency ! {request, self(), {deallocate, Freq}},
   receive
-    {reply, Pid, Reply} -> Reply
+    {reply, Pid, ok} -> ok;
+    {error, Pid, unallocated} -> ok
   after 1000 -> clear()
   end.
 
@@ -93,13 +98,15 @@ allocate({[Freq|Free], Allocated}, Pid) ->
 
 -spec deallocate(State0::state(), Freq::integer()) -> State1::state(). 
 %% @doc private auxiliary function for public deallocate/1
+%% throw exception when requested to deallocate an unallocated frequency
 deallocate({Free, Allocated}, Freq) ->
   case proplists:lookup(Freq, Allocated) of
     {Freq, Pid} ->
       unlink(Pid), 
       {[Freq|Free], proplists:delete(Freq, Allocated)};
-    none        -> 
-      {Free, Allocated}
+    none        ->
+      io:format("Unallocated frequency ~p~n", [Freq]),
+      throw(unallocated)
   end.
 
 -spec exited(State0::state(), Pid::pid()) -> State1::state().
@@ -114,15 +121,16 @@ exited({Free, Allocated}, Pid) ->
 %% frequency:test().
 %% rather use freqclient:random_test(1000).
 test() ->
-  start(),
+  start(), 
   allocate(),
+  allocate(), 
+  allocate(), 
+  allocate(), 
+  deallocate(20), % Prints Unallocated frequency 20
+  allocate(), 
   allocate(),
-  allocate(),
-  allocate(),
-  allocate(),
-  allocate(),
-  allocate(),
-  deallocate(10),
+  allocate(), 
+  deallocate(10), 
   allocate(),
   stop().
 
