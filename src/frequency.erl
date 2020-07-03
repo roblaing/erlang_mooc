@@ -44,6 +44,7 @@ loop(State0) ->
           loop(State0)
       end;
     {request, From, stop} ->
+      terminate(State0),
       From ! {reply, self(), stopped};
     {'EXIT', From, Reason} ->
       io:format("~p exited: ~p~n", [From, Reason]),
@@ -109,7 +110,7 @@ allocate({[Freq|Free], Allocated}, Pid) ->
 deallocate({Free, Allocated}, Freq) ->
   case proplists:lookup(Freq, Allocated) of
     {Freq, Pid} ->
-      unlink(Pid), 
+      unlink(Pid),
       {[Freq|Free], proplists:delete(Freq, Allocated)};
     none        ->
       io:format("Unallocated frequency ~p~n", [Freq]),
@@ -125,6 +126,12 @@ exited({Free, Allocated}, Pid) ->
       {Free, Allocated}
   end.
 
+terminate({_, []}) -> ok;
+terminate({Free, [{_, Pid}|Allocated]}) ->
+  unlink(Pid),
+  exit(Pid, normal),
+  terminate({Free, Allocated}).
+
 %% frequency:test().
 %% rather use freqclient:random_test(1000).
 test() ->
@@ -133,8 +140,8 @@ test() ->
   allocate(), 
   allocate(), 
   allocate(), 
-  deallocate(20), % Prints Unallocated frequency 20
-  frequency ! wtf,
+  deallocate(20),  % Prints Unallocated frequency 20
+  frequency ! wtf, % Prints Received unknown message wtf
   allocate(), 
   allocate(),
   allocate(), 
