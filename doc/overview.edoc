@@ -1,4 +1,4 @@
-@doc Home page for my assignments for the University of Kent's Erlang courses offered via Futurelearn.
+@doc This has been created by copying overview.edoc to README.md. Running <code>make doc</code> creates index.html which looks better.
 
 <h1>Pid Bang</h1>
 
