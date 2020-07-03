@@ -6,9 +6,12 @@
         , stop/0
         , allocate/0
         , deallocate/1
+        , inject/1
         , init/0
+        , loop/1
         , test/0
         ]).
+-vsn(1.3).
 
 -type state() :: {Free::[Freq::integer()], Allocated::[{Freq::integer(), Pid::pid()}]}.
 
@@ -27,29 +30,36 @@ init() ->
     throw:{unknown_message, State} -> loop(State)
   end.
 
+-spec loop(State :: state()) -> ok.
+%% @doc needs to be public for hot module reloading to work.
 loop(State0) ->
+  % io:format("~p~n", [State0]),
   receive
     {request, From, allocate} ->
       {State1, Reply} = allocate(State0, From),
       From ! {reply, self(), Reply},
-      loop(State1);
+      frequency:loop(State1);
     {request, From, {deallocate, Freq}} ->
       try deallocate(State0, Freq) of
         State1 ->
           From ! {reply, self(), ok},
-          loop(State1)
+          frequency:loop(State1)
       catch
         throw:unallocated ->
           From ! {error, self(), unallocated},
-          loop(State0)
+          frequency:loop(State0)
       end;
+    {request, From, {inject, Freqs}} ->
+      State1 = inject(State0, Freqs),
+      From ! {reply, self(), ok},
+      frequency:loop(State1);
     {request, From, stop} ->
       terminate(State0),
       From ! {reply, self(), stopped};
     {'EXIT', From, Reason} ->
       io:format("~p exited: ~p~n", [From, Reason]),
       State1 = exited(State0, From),
-      loop(State1);
+      frequency:loop(State1);
     Unknown ->
       io:format("Received unknown message ~p~n", [Unknown]),
       throw({unknown_message, State0})
@@ -85,7 +95,7 @@ deallocate(Freq) ->
   end.
 
 -spec stop() -> stopped.
-%% @doc end listening loop.
+%% @doc end listening loop, enhanced to have handler kill client processes.
 stop() ->
   Pid = whereis(frequency),  
   frequency ! {request, self(), stop},
@@ -95,6 +105,17 @@ stop() ->
       Reply
   after 1000 -> clear()
   end.
+
+-spec inject([Freqs::integer()]) -> ok.
+%% @doc append additionals Freqs to Free list.
+inject(Freqs) ->
+  Pid = whereis(frequency),  
+  frequency ! {request, self(), {inject, Freqs}},
+  receive
+    {reply, Pid, ok} -> ok
+  after 1000 -> clear()
+  end.
+
 
 -spec allocate(State0::state(), Pid::pid()) -> {State1::state(), {ok, Freq::integer()} | {error, no_frequency}}.
 %% @doc private auxiliary function for public allocate/0.
@@ -118,6 +139,7 @@ deallocate({Free, Allocated}, Freq) ->
   end.
 
 -spec exited(State0::state(), Pid::pid()) -> State1::state().
+%% @doc Handle {'EXIT', Pid, Reason} messages.
 exited({Free, Allocated}, Pid) ->
   case lists:keyfind(Pid, 2, Allocated) of
     {Freq, Pid} -> 
@@ -132,6 +154,9 @@ terminate({Free, [{_, Pid}|Allocated]}) ->
   exit(Pid, normal),
   terminate({Free, Allocated}).
 
+inject({Free, Allocated}, Freqs) ->
+  {Free ++ Freqs, Allocated}.
+
 %% frequency:test().
 %% rather use freqclient:random_test(1000).
 test() ->
@@ -141,6 +166,7 @@ test() ->
   allocate(), 
   allocate(), 
   deallocate(20),  % Prints Unallocated frequency 20
+  inject([16,17]),
   frequency ! wtf, % Prints Received unknown message wtf
   allocate(), 
   allocate(),
