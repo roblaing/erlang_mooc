@@ -10,18 +10,26 @@
 <hr>
 
 <h1>Module frequency</h1>
-<ul class="index"><li><a href="#description">Description</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>I've used <a href="http://erlang.org/doc/apps/edoc/chapter.html">Edoc</a> comment conventions.
+<ul class="index"><li><a href="#description">Description</a></li><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>I've used <a href="http://erlang.org/doc/apps/edoc/chapter.html">Edoc</a> comment conventions.
 
 
 <h2><a name="description">Description</a></h2><p>I've used <a href="http://erlang.org/doc/apps/edoc/chapter.html">Edoc</a> comment conventions.</p>
  
   Tests can be run with <code>frequency:test()</code>
+<h2><a name="types">Data Types</a></h2>
+
+<h3 class="typedecl"><a name="type-state">state()</a></h3>
+<p><tt>state() = {Free::[Freq::integer()], Allocated::[{Freq::integer(), Pid::pid()}]}</tt></p>
+
+
 <h2><a name="index">Function Index</a></h2>
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#allocate-0">allocate/0</a></td><td>allocate a frequency, if possible.</td></tr>
 <tr><td valign="top"><a href="#deallocate-1">deallocate/1</a></td><td>deallocate a frequency.</td></tr>
 <tr><td valign="top"><a href="#init-0">init/0</a></td><td>this is only public to make spawn happy.</td></tr>
+<tr><td valign="top"><a href="#inject-1">inject/1</a></td><td>append additionals Freqs to Free list.</td></tr>
+<tr><td valign="top"><a href="#loop-1">loop/1</a></td><td>needs to be public for hot module reloading to work.</td></tr>
 <tr><td valign="top"><a href="#start-0">start/0</a></td><td>spawn and register the frequency server.</td></tr>
-<tr><td valign="top"><a href="#stop-0">stop/0</a></td><td>end listening loop.</td></tr>
+<tr><td valign="top"><a href="#stop-0">stop/0</a></td><td>end listening loop, enhanced to have handler kill client processes.</td></tr>
 <tr><td valign="top"><a href="#test-0">test/0</a></td><td></td></tr>
 </table>
 
@@ -42,6 +50,16 @@
 <p><tt>init() -&gt; any()</tt></p>
 </div><p>this is only public to make spawn happy.</p>
 
+<h3 class="function"><a name="inject-1">inject/1</a></h3>
+<div class="spec">
+<p><tt>inject(Freqs::[Freqs::integer()]) -&gt; ok</tt><br></p>
+</div><p>append additionals Freqs to Free list.</p>
+
+<h3 class="function"><a name="loop-1">loop/1</a></h3>
+<div class="spec">
+<p><tt>loop(State::<a href="#type-state">state()</a>) -&gt; ok</tt><br></p>
+</div><p>needs to be public for hot module reloading to work.</p>
+
 <h3 class="function"><a name="start-0">start/0</a></h3>
 <div class="spec">
 <p><tt>start() -&gt; true</tt><br></p>
@@ -50,7 +68,7 @@
 <h3 class="function"><a name="stop-0">stop/0</a></h3>
 <div class="spec">
 <p><tt>stop() -&gt; stopped</tt><br></p>
-</div><p>end listening loop.</p>
+</div><p>end listening loop, enhanced to have handler kill client processes.</p>
 
 <h3 class="function"><a name="test-0">test/0</a></h3>
 <div class="spec">

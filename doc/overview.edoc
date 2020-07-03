@@ -50,58 +50,34 @@ so care needs to be taken to avoid waiting at the mailbox for a response that wi
 
 <h1><a href="https://erlang.org/doc/reference_manual/errors.html">Error Handling</a></h1>
 
-<h1>Linking processes</h1>
+This is a fairly complex topic, introducing several new primitives.
 
-Call <code>link(Pid)</code> in one process to lin to the process Pid.
+Erlang broadly has two ways of handling crashes: one suited for when the caller is a message handler with repeat ... end,
+and another for traditional function calls using try ... catch ... end.
 
-If on process fails, linked processes fail too and processes linked to those will also fail.
+<h2>Error propogation in a network of nodes</h2>
 
+The key BIFs here are <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -> true</a> which links the
+calling process to another, or 
+<a href="https://erlang.org/doc/man/erlang.html#spawn_link-3">spawn_link(Module, Function, Args) -> pid()</a>
+which is safer when calling spawn since it does both as an atomic operation (avoding a race condition if the spawned process should
+immediately die).
 
-spawn_link
+If the process spawning a child process is its <em>supervisor</em>, it needs to set
+<a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>.
 
-Need just two primitives
+Otherwise, if <em>trap_exit</em> is left at the default <em>false</em>, linked processes are designed to fall like dominoes.
 
-link(A, B)
+A node can kill itself with <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -> no_return()</a>, and nodes
+can be killed externally by <a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a>
 
+If the supervisor node has <em>trap_exit</em> set to <em>true</em>, instead of topling over it needs to handle a message
+<code>{'EXIT', FromPid, Reason}</code>.
 
-<h2>Signal vs Message?</h2>
+Reason can be any atom, but there's a little subtlety about <code>exit(kill)</code>: the linked process receives 
+<code>{'EXIT', FromPid, killed}</code>
 
-Signals are not messages in Erlang
-
-When a process terminates abnormally, it sends a signal to all the processes linked to it, with the reason killed.
-
-Signals propogate immediately, and the default behaviour on receiving a signal is to terminate (abnormally) yourself.
-
-Signals and messages are different, but they are connected.
-
-If we're able to deal with a process failing, we need to know when a process has failed, without being killed ourselves.
-
-process_flag(trap_exit, true) to turn some processes into system processes
-
-then exit signals to that process are converted to messages:
-
-{'EXIT', FromPid, Reason}
-
-<h2>Sending exit signals</h2>
-
-Exits happen for all sorts of reasons: eg division by 0, ...
-
-Can be triggered in a process itself by calling exit(Reason).
-
-Can be caused by another process calling exit(Pid, Reason).
-
-Normal termination has the reason normal, any other reason is abnormal.
-
-Dealing with abnormal termination
-
-When a process terminates abnormally, it sends a signal to all the processes linked to it.
-
-<h2>Supervisors</h2>
-
-Supervisors <em>spawn</em> workers.
-
-
-
+This doesn't seem to apply other exit reasons like <em>normal</em> etc.
 
 <h2>Exceptions</h2>
 
@@ -154,5 +130,14 @@ end
 
 
 https://s3.us-east-2.amazonaws.com/ferd.erlang-in-anger/text.v1.1.0.pdf
+
+
+http://erlang.org/doc/apps/observer/observer_ug.html
+
+https://github.com/RefactoringTools/percept2
+
+https://concuerror.com/
+
+https://dl.acm.org/doi/10.1145/1596550.1596574
 
 
