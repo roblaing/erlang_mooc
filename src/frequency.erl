@@ -6,7 +6,7 @@
         , stop/0
         , allocate/0
         , deallocate/1
-        , inject/1
+        , inject/2
         , init/1
         , loop/1
         , test/0
@@ -29,7 +29,7 @@ init(Freqs) ->
   try loop({Freqs, []}) of
     _ -> ok
   catch
-    throw:{unknown_message, State1} -> loop(State1)
+    throw:{unknown_message, State} -> loop(State)
   end.
 
 -spec loop(State :: state()) -> ok.
@@ -52,7 +52,7 @@ loop(State0) ->
           frequency:loop(State0)
       end;
     {request, From, {inject, Freqs}} ->
-      State1 = inject(State0, Freqs),
+      State1 = inject_(State0, Freqs),
       From ! {reply, self(), ok},
       frequency:loop(State1);
     {request, From, free} ->
@@ -139,11 +139,11 @@ stop_(Server) ->
   after 1000 -> clear()
   end.
 
--spec inject([Freqs::integer()]) -> ok.
+-spec inject(Server :: atom(), [Freqs::integer()]) -> ok.
 %% @doc append additionals Freqs to Free list.
-inject(Freqs) ->
-  Pid = whereis(frequency1),  
-  frequency1 ! {request, self(), {inject, Freqs}},
+inject(Server, Freqs) ->
+  Pid = whereis(Server),  
+  Pid ! {request, self(), {inject, Freqs}},
   receive
     {reply, Pid, ok} -> ok
   after 1000 -> clear()
@@ -186,7 +186,7 @@ terminate({Free, [{_, Pid}|Allocated]}) ->
   exit(Pid, normal),
   terminate({Free, Allocated}).
 
-inject({Free, Allocated}, Freqs) ->
+inject_({Free, Allocated}, Freqs) ->
   {Free ++ Freqs, Allocated}.
 
 %% frequency:test().
@@ -198,7 +198,7 @@ test() ->
   allocate(), 
   allocate(), 
   deallocate(30),  % Prints Unallocated frequency 30
-  inject([16,17]),
+  inject(frequency1, [16,17]),
   frequency1 ! wtf, % Prints Received unknown message wtf
   allocate(), 
   allocate(),
