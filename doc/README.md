@@ -42,11 +42,22 @@ to remain alive for repeated messages, it needs to be written as a <em>listening
 Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
 block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.
 
-<h2>after Timeout -> ...</h2>
+<h2>Monitors</h2>
 
 An important difference between Erlang and the Elvis song is if the <em>to address</em> is wrong
 you won't get a bounceback saying <q>... address unknown. No such number, no such zone</q>, 
 so care needs to be taken to avoid waiting at the mailbox for a response that will never come.
+
+This problem can't be handled by timeouts since we need to check if the server hasn't crashed, but is simply too slow. 
+This is where monitors come in.
+
+<a href="https://erlang.org/doc/man/erlang.html#monitor-2">
+monitor(Type :: process, Item :: monitor_process_identifier()) -> MonitorRef</a>
+
+<a href="https://erlang.org/doc/man/erlang.html#demonitor-1">demonitor(MonitorRef) -> true</a>
+
+<code>{'DOWN',#Ref&lt;0.1606639298.2877292545.87648>,process,&lt;0.82.0>,normal}</code>
+
 
 <h1><a href="https://erlang.org/doc/reference_manual/errors.html">Error Handling</a></h1>
 
@@ -55,18 +66,19 @@ This is a fairly complex topic, introducing several new primitives.
 Erlang broadly has two ways of handling crashes: one suited for when the caller is a message handler with repeat ... end,
 and another for traditional function calls using try ... catch ... end.
 
-<h2>Error propogation in a network of nodes</h2>
+<h2><a href="https://erlang.org/doc/reference_manual/processes.html#errors">Error propogation in a network of nodes</a></h2>
 
 The key BIFs here are <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -> true</a> which links the
 calling process to another, or 
 <a href="https://erlang.org/doc/man/erlang.html#spawn_link-3">spawn_link(Module, Function, Args) -> pid()</a>
-which is safer when calling spawn since it does both as an atomic operation (avoding a race condition if the spawned process should
-immediately die).
+which is safer when calling spawn and then link since it does both as an atomic operation, avoiding the possibility of
+linking to a dead process.
 
 If the process spawning a child process is its <em>supervisor</em>, it needs to set
 <a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>.
 
-Otherwise, if <em>trap_exit</em> is left at the default <em>false</em>, linked processes are designed to fall like dominoes.
+Otherwise, if <em>trap_exit</em> is left at the default <em>false</em>, linked processes are designed to fall like dominoes,
+unless the exit reason is <em>normal</em>.
 
 A node can kill itself with <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -> no_return()</a>, and nodes
 can be killed externally by <a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a>
@@ -128,6 +140,12 @@ catch
 end
 </pre></code>
 
+<h1>Common problems</h1>
+
+<h2>Race conditions</h2>
+
+No guarantees about ordering (except point to point).
+
 
 https://s3.us-east-2.amazonaws.com/ferd.erlang-in-anger/text.v1.1.0.pdf
 
@@ -140,4 +158,11 @@ https://concuerror.com/
 
 https://dl.acm.org/doi/10.1145/1596550.1596574
 
+<h1><a href="https://erlang.org/doc/reference_manual/distributed.html">Distributed</a></h1>
+
+<code></code>
+
+<h1>OTP</h1>
+
+https://www.youtube.com/watch?v=9HVvzSsdW9k&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc
 

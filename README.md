@@ -102,7 +102,7 @@ any()
 │   ├── atom()                     % is_atom(Term)
 │   │   ├── boolean()              % false | true   bool() is a deprecated synonym
 │   │   ├── module()
-│   │   └── node()
+│   │   └── node()                 % eg 'dilbert@uab.ericsson.se' or dilbert@uab
 │   ├── binary()                   % <a href="https://learnyousomeerlang.com/starting-out-for-real#bit-syntax">bit syntax</a>
 │   │   └── bitstring()
 

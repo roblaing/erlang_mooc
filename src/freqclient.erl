@@ -21,6 +21,14 @@ client() ->
       client()
   end.
 
+clear() ->
+  receive
+    Msg -> 
+      io:format("Received ~p after timeout~n", [Msg]), 
+      clear()
+  after 0 -> ok
+  end.
+
 -spec add_client() -> {Freq::integer(), Pid::pid()} | {error, no_frequency}.
 %% @doc Create a fresh client process and allocate a frequency if one is free, else kill process and return no_frequency message.
 add_client() ->
@@ -30,8 +38,10 @@ add_client() ->
     {ok, Freq} -> {Freq, Pid};
     {error, no_frequency} ->
        exit(Pid, no_frequency),
-       {error, no_frequency}; 
-    Msg -> io:format("Unexpected add_client() message ~p~n", [Msg])
+       {error, no_frequency} 
+  after 1000 -> 
+      io:format("add_client() timeout~n"), 
+      clear()
   end.
 
 -spec delete_client({Freq::integer(), Pid::pid()}) -> ok.
@@ -39,8 +49,10 @@ add_client() ->
 delete_client({Freq, Pid}) ->
   Pid ! {self(), hangup, Freq},
   receive
-    ok -> ok;
-    Msg -> io:format("Unexpected delete_client() message ~p~n", [Msg])
+    ok -> ok
+  after 1000 ->
+    io:format("delete_client() timeout~n"),
+    clear()
   end.
 
 -spec kill_client({Freq::integer(), Pid::pid()}) -> true.

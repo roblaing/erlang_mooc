@@ -11,7 +11,7 @@
         , loop/1
         , test/0
         ]).
--vsn(1.3).
+-vsn(1.4).
 
 -type state() :: {Free::[Freq::integer()], Allocated::[{Freq::integer(), Pid::pid()}]}.
 
@@ -37,31 +37,31 @@ init(Init) ->
 loop(State0) ->
   % io:format("~p~n", [length(Free)]),
   receive
-    {request, From, allocate} ->
+    {request, From, Ref, allocate} ->
       {State1, Reply} = allocate(State0, From),
-      From ! {reply, self(), Reply},
+      From ! {reply, Ref, Reply},
       frequency:loop(State1);
-    {request, From, {deallocate, Freq}} ->
+    {request, From, Ref, {deallocate, Freq}} ->
       try deallocate(State0, Freq) of
         State1 ->
-          From ! {reply, self(), ok},
+          From ! {reply, Ref, ok},
           frequency:loop(State1)
       catch
         throw:unallocated ->
-          From ! {error, self(), unallocated},
+          From ! {reply, Ref, {error, unallocated}},
           frequency:loop(State0)
       end;
-    {request, From, {inject, Freqs}} ->
+    {request, From, Ref, {inject, Freqs}} ->
       State1 = inject_(State0, Freqs),
-      From ! {reply, self(), ok},
+      From ! {reply, Ref, ok},
       frequency:loop(State1);
-    {request, From, free} ->
+    {request, From, Ref, free} ->
       {Free, _} = State0,
-      From ! {reply, self(), length(Free)},
+      From ! {reply, Ref, length(Free)},
       frequency:loop(State0);
-    {request, From, stop} ->
-      terminate(State0),
-      From ! {reply, self(), stopped};
+    {request, From, Ref, stop} ->
+      terminate(State0), % causes bugs
+      From ! {reply, Ref, stopped};
     {'EXIT', From, Reason} ->
       io:format("~p exited: ~p~n", [From, Reason]),
       State1 = exited(State0, From),
@@ -71,83 +71,48 @@ loop(State0) ->
       throw({unknown_message, State0})
   end.
 
-clear() ->
+request(Server, Request) ->
+  Ref = monitor(process, whereis(Server)),
+  Server ! {request, self(), Ref, Request},
   receive
-    Msg -> 
-      io:format("Received ~p after timeout~n", [Msg]), 
-      clear()
-  after 0 -> ok
+    {reply, Ref, Reply} -> 
+      demonitor(Ref), 
+      Reply;
+    {'DOWN', Ref, Type, Object, Info} ->
+      io:format("Type ~p Object ~p Info ~p", [Type, Object, Info]),
+      {error, server_down}
   end.
 
 -spec allocate() -> {ok, Freq::integer()} | {error, no_frequency}.
 %% @doc allocate a frequency, if possible.
 allocate() ->
-  Free1 = get_free(frequency1),
-  Free2 = get_free(frequency2),
+  Free1 = request(frequency1, free),
+  Free2 = request(frequency2, free),
   if
-    Free1 >= Free2 -> allocate_(frequency1);
-    Free1 < Free2  -> allocate_(frequency2)
-  end.
-
-allocate_(Server) ->
-  Pid = whereis(Server),
-  Pid ! {request, self(), allocate},
-  receive
-    {reply, Pid, {ok, Freq}} -> {ok, Freq};
-    {reply, Pid, {error, no_frequency}} -> {error, no_frequency}
-  after 1000 -> clear()
-  end.
-
-get_free(Server) ->
-  Pid = whereis(Server),
-  Pid ! {request, self(), free},
-  receive
-    {reply, Pid, Free} -> Free
-  after 1000 -> 0
+    Free1 >= Free2 -> request(frequency1, allocate);
+    Free1 < Free2  -> request(frequency2, allocate)
   end.
 
 -spec deallocate(Freq::integer()) -> ok.
 %% @doc deallocate a frequency.
 deallocate(Freq) ->
   if
-    Freq >= 10, Freq =< 15 -> deallocate_(frequency1, Freq);
-    Freq >= 20, Freq =< 25 -> deallocate_(frequency2, Freq);
-    true -> deallocate_(frequency1, Freq) % for unallocated error test
-  end.
-
-deallocate_(Server, Freq) ->
-  Pid = whereis(Server),
-  Pid ! {request, self(), {deallocate, Freq}},
-  receive
-    {reply, Pid, ok} -> ok;
-    {error, Pid, unallocated} -> ok % do something more specific in real life.
-  after 1000 -> clear()
+    Freq >= 10, Freq =< 15 -> request(frequency1, {deallocate, Freq});
+    Freq >= 20, Freq =< 25 -> request(frequency2, {deallocate, Freq});
+    true -> request(frequency1, {deallocate, Freq}) % for unallocated error test
   end.
 
 -spec stop() -> stopped.
 %% @doc end listening loop, enhanced to have handler kill client processes.
 stop() ->
   io:format("Terminating...~n"),
-  stop_(frequency1),
-  stop_(frequency2).
-
-stop_(Server) ->
-  Pid = whereis(Server),  
-  Pid ! {request, self(), stop},
-  receive
-    {reply, Pid, stopped} -> stopped
-  after 1000 -> clear()
-  end.
+  request(frequency1, stop),
+  request(frequency2, stop).
 
 -spec inject(Server :: atom(), [Freqs::integer()]) -> ok.
 %% @doc append additionals Freqs to Free list.
 inject(Server, Freqs) ->
-  Pid = whereis(Server),  
-  Pid ! {request, self(), {inject, Freqs}},
-  receive
-    {reply, Pid, ok} -> ok
-  after 1000 -> clear()
-  end.
+  request(Server, {inject, Freqs}).
 
 -spec allocate(State0::state(), Pid::pid()) -> {State1::state(), {ok, Freq::integer()} | {error, no_frequency}}.
 %% @doc private auxiliary function for public allocate/0.
@@ -182,7 +147,7 @@ exited({Free, Allocated}, Pid) ->
 
 terminate({_, []}) -> ok;
 terminate({Free, [{_, Pid}|Allocated]}) ->
-  unlink(Pid), % still needed if exit Reason is normal?
+  unlink(Pid), % Just to be safe, though shouldn't be needed if exit Reason is normal
   exit(Pid, normal),
   terminate({Free, Allocated}).
 

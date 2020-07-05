@@ -25,10 +25,10 @@
 <h2><a name="index">Function Index</a></h2>
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#allocate-0">allocate/0</a></td><td>allocate a frequency, if possible.</td></tr>
 <tr><td valign="top"><a href="#deallocate-1">deallocate/1</a></td><td>deallocate a frequency.</td></tr>
-<tr><td valign="top"><a href="#init-0">init/0</a></td><td>this is only public to make spawn happy.</td></tr>
-<tr><td valign="top"><a href="#inject-1">inject/1</a></td><td>append additionals Freqs to Free list.</td></tr>
+<tr><td valign="top"><a href="#init-1">init/1</a></td><td>this is only public to make spawn happy.</td></tr>
+<tr><td valign="top"><a href="#inject-2">inject/2</a></td><td>append additionals Freqs to Free list.</td></tr>
 <tr><td valign="top"><a href="#loop-1">loop/1</a></td><td>needs to be public for hot module reloading to work.</td></tr>
-<tr><td valign="top"><a href="#start-0">start/0</a></td><td>spawn and register the frequency server.</td></tr>
+<tr><td valign="top"><a href="#start-0">start/0</a></td><td>spawn and register the frequency servers.</td></tr>
 <tr><td valign="top"><a href="#stop-0">stop/0</a></td><td>end listening loop, enhanced to have handler kill client processes.</td></tr>
 <tr><td valign="top"><a href="#test-0">test/0</a></td><td></td></tr>
 </table>
@@ -45,14 +45,14 @@
 <p><tt>deallocate(Freq::integer()) -&gt; ok</tt><br></p>
 </div><p>deallocate a frequency.</p>
 
-<h3 class="function"><a name="init-0">init/0</a></h3>
+<h3 class="function"><a name="init-1">init/1</a></h3>
 <div class="spec">
-<p><tt>init() -&gt; any()</tt></p>
+<p><tt>init(Init::<a href="#type-state">state()</a>) -&gt; ok</tt><br></p>
 </div><p>this is only public to make spawn happy.</p>
 
-<h3 class="function"><a name="inject-1">inject/1</a></h3>
+<h3 class="function"><a name="inject-2">inject/2</a></h3>
 <div class="spec">
-<p><tt>inject(Freqs::[Freqs::integer()]) -&gt; ok</tt><br></p>
+<p><tt>inject(Server::atom(), Freqs::[Freqs::integer()]) -&gt; ok</tt><br></p>
 </div><p>append additionals Freqs to Free list.</p>
 
 <h3 class="function"><a name="loop-1">loop/1</a></h3>
@@ -63,7 +63,7 @@
 <h3 class="function"><a name="start-0">start/0</a></h3>
 <div class="spec">
 <p><tt>start() -&gt; true</tt><br></p>
-</div><p>spawn and register the frequency server.</p>
+</div><p>spawn and register the frequency servers.</p>
 
 <h3 class="function"><a name="stop-0">stop/0</a></h3>
 <div class="spec">

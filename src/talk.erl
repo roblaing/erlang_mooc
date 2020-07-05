@@ -8,7 +8,8 @@ worker() ->
 work(N) ->
   case N of
     3 -> 
-      exit(whereis(echo), kill_echo),
+      % exit(whereis(echo), normal), % normal doesn't hang
+      exit(whereis(echo), kill),
       timer:sleep(2000);
     _ -> true
   end,

@@ -6,7 +6,8 @@ listener() ->
   receive
     {Pid, 5} -> 
       io:format("5 killed ~w.~n", [Pid]),
-      exit(Pid, kill_worker),
+      exit(Pid, kill),
+      % exit(Pid, normal), % hangs
       listener();
     {Pid, M} ->
       io:format("~w echoed.~n",[M]),
