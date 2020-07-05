@@ -16,17 +16,17 @@
 -type state() :: {Free::[Freq::integer()], Allocated::[{Freq::integer(), Pid::pid()}]}.
 
 -spec start() -> true.
-%% @doc spawn and register the frequency server.
+%% @doc spawn and register the frequency servers.
 start() -> 
   io:format("Starting...~n"),
-  register(frequency1, spawn(frequency, init, [[10,11,12,13,14,15]])),
-  register(frequency2, spawn(frequency, init, [[20,21,22,23,24,25]])).
+  register(frequency1, spawn(frequency, init, [{[10,11,12,13,14,15],[]}])),
+  register(frequency2, spawn(frequency, init, [{[20,21,22,23,24,25],[]}])).
 
--spec init(Freqs::[integer()]) -> ok.
+-spec init(Init::state()) -> ok.
 %% @doc this is only public to make spawn happy.
-init(Freqs) ->
+init(Init) ->
   process_flag(trap_exit, true),
-  try loop({Freqs, []}) of
+  try loop(Init) of
     _ -> ok
   catch
     throw:{unknown_message, State} -> loop(State)
