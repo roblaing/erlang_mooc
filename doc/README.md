@@ -44,12 +44,15 @@ block doesn't need to be in the process that makes the initial call, but can be 
 
 <h2>Monitors</h2>
 
-An important difference between Erlang and the Elvis song is if the <em>to address</em> is wrong
+An important difference between Erlang and the Elvis song is if no-one is at the <em>to address</em>,
 you won't get a bounceback saying <q>... address unknown. No such number, no such zone</q>, 
 so care needs to be taken to avoid waiting at the mailbox for a response that will never come.
 
 This problem can't be handled by timeouts since we need to check if the server hasn't crashed, but is simply too slow. 
-This is where monitors come in.
+This is where monitors come in, as explained in this video:
+
+<a href="https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc&amp;index=2">
+https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc&amp;index=2</a>
 
 <a href="https://erlang.org/doc/man/erlang.html#monitor-2">
 monitor(Type :: process, Item :: monitor_process_identifier()) -> MonitorRef</a>
