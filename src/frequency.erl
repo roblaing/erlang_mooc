@@ -76,10 +76,10 @@ request(Server, Request) ->
   Server ! {request, self(), Ref, Request},
   receive
     {reply, Ref, Reply} -> 
-      demonitor(Ref), 
+      demonitor(Ref, [flush]), 
       Reply;
-    {'DOWN', Ref, Type, Object, Info} ->
-      io:format("Type ~p Object ~p Info ~p", [Type, Object, Info]),
+    {'DOWN', Ref, process, Pid, Info} ->
+      io:format("Pid ~p Info ~p", [Pid, Info]),
       {error, server_down}
   end.
 
