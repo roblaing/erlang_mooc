@@ -55,9 +55,9 @@ This is where monitors come in, as explained in this video:
 https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc&amp;index=2</a>
 
 <code><pre>
-request(Server, Request) ->
-  Ref = monitor(process, whereis(Server)),
-  Server ! {request, self(), Ref, Request},
+call(RegName, Request) ->
+  Ref = monitor(process, whereis(RegName)),
+  RegName ! {request, self(), Ref, Request},
   receive
     {reply, Ref, Reply} -> 
       demonitor(Ref, [flush]), 
@@ -67,6 +67,9 @@ request(Server, Request) ->
       {error, server_down}
   end.
 </pre></code>
+
+I originally called the above function <em>request</em> before dicovering the OTP idiom is <em>call</em>. By
+luck I used the same argument convention, and there is a three arity version to include timeouts.
 
 <a href="https://erlang.org/doc/man/erlang.html#monitor-2">
 monitor(Type :: process, Item :: monitor_process_identifier()) -> MonitorRef</a>
@@ -182,4 +185,33 @@ https://dl.acm.org/doi/10.1145/1596550.1596574
 <h1>OTP</h1>
 
 https://www.youtube.com/watch?v=9HVvzSsdW9k&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc
+
+<h2>General Server</h2>
+
+<h3>call and handle_call</h3>
+
+<a href="https://erlang.org/doc/man/gen_server.html#call-2">call(ServerRef, Request) -> Reply</a>
+
+<code><pre>
+allocate() -> gen_server:call(frequency, allocate).
+</pre></code>
+
+<a href="https://erlang.org/doc/man/gen_server.html#Module:handle_call-3">Module:handle_call(Request, From, State) -> Result</a>
+
+<code><pre>
+handle_call(allocate, _, {[], Allocated}) -> 
+  {reply, {error, no_frequency}, {[], Allocated}};
+handle_call(allocate, From, {[Freq|Free], Allocated}) ->
+  link(From),
+  {reply, {ok, Freq}, {Free, [{Freq, From}|Allocated]}};
+</pre></code>
+
+https://erlang.org/doc/man/gen_server.html#Module:handle_call-3
+
+https://erlang.org/doc/design_principles/gen_server_concepts.html
+
+https://erlang.org/doc/man/gen_server.html
+
+Rewriting frequency.erl as a general server:
+
 
