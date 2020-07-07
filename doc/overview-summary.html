@@ -31,15 +31,18 @@ A process can simply give its return address as
 
 <h1>Message idioms</h1>
 
-<p>Both in this course and various tutorials, learners get told message structure in Erlang is arbitrary. 
-This is misleading since Erlang is very much in the "convention over configuration school", and teaching 
+<p>There's a tendancy to tell Erlang novices in tutorials that message structure is arbitrary. 
+I think this misleading since Erlang is very much in the "convention over configuration school", and teaching 
 these conventions from the outset would make things much easier down the line.</p>
 
 <p>A symptom of not understanding the idioms was my frequency server example's listening loop got increasingly cluttered 
 with stanzas since I was writing separate ones for allocate, deallocate, inject...</p>
 
-<p>Learning the abstractions in <a href="https://erlang.org/doc/design_principles/gen_server_concepts.html">gen_server</a>
-and standardising the message expected by the server loop to </p>
+<p>The code I wrote while learning this is at <a href="https://github.com/roblaing/erlang_mooc/blob/master/src/gen_server_light.erl">
+gen_server_light.erl</a>, based on 
+<a href="https://erlang.org/doc/design_principles/gen_server_concepts.html">gen_server</a>.</p>
+
+<p>Standardising the message expected by the server loop to </p>
 
 <p><code>{call, From, Ref, Request}</code></p> 
 
@@ -71,8 +74,8 @@ loop(State0) -&gt;
 
 <p>This is mainly for educational purposes since OTP applications have builtin loop functions. Similarly, 
 I've written my own versions of call and cast for learning purposes, sticking to the arguments and reply conventions of
-<a href="https://erlang.org/doc/man/gen_server.html#call-2">call(ServerRef, Request) -&gt; Reply</a> and 
-<a href="https://erlang.org/doc/man/gen_server.html#cast-2">cast(ServerRef, Request) -&gt; ok</a>. </p>
+<a href="https://erlang.org/doc/man/gen_server.html#call-2">gen_server:call(ServerRef, Request) -&gt; Reply</a> and 
+<a href="https://erlang.org/doc/man/gen_server.html#cast-2">gen_server:cast(ServerRef, Request) -&gt; ok</a>.</p>
 
 <p>What <code>call</code> and <code>cast</code> let us do is create a simple, standard template for client functions:</p>
 
@@ -83,7 +86,7 @@ inject(Freqs)    -&gt; cast(frequency, {inject, Freqs}).
 ...
 </pre></code></p>
 
-<p>My version of call looks like:</p>
+<p>My version of <code>call/2</code> looks like:</p>
 
 <p><code><pre>
 call(RegName, Request) -&gt;
@@ -129,6 +132,49 @@ call waiting for eternity for a reply from a dead server as explained in this vi
 <p>If the server crashes before responding, call would receive a message like</p>
 
 <p><code>{'DOWN',#Ref&lt;0.1606639298.2877292545.87648&gt;,process,&lt;0.82.0&gt;,normal}</code></p>
+
+<h2>Behaving yourself</h2>
+
+<p>Though we typically use pre-prepared behaviours, as a learning exercise I wanted to turn my
+<a href="https://github.com/roblaing/erlang_mooc/blob/master/src/gen_server_light.erl">
+gen_server_light.erl</a> into a something clients could address as <code>-behaviour(gen_server_light)</code>.</p>
+
+<p>There appears to be an old and new way to do this. The old way, touched on by Professor Thompson, is to export
+behaviour_info/1 and then write something like:</p>
+
+<p><code><pre>
+behaviour_info(callbacks) -&gt;
+  [ {handle_call, 2}
+  , {handle_cast, 2}
+  , {init, 1}
+  , {terminate, 1}
+  ];
+behaviour_info(_) -&gt; undefined.
+</pre></code></p>
+
+<p>ie list functions the behaviour module expects to find in the client's code.</p>
+
+<p>The <em>new way</em> appears to be to use the <code>-callback</code>
+<a href="https://erlang.org/doc/reference_manual/modules.html#module-attributes">module attribute</a> which via
+a google search I found described at 
+<a href="http://davekuhlman.org/implement-a-behavior.html">http://davekuhlman.org/implement-a-behavior.html</a>.</p>
+
+<p>The syntax for <code>-callback</code> is the same as <code>-spec</code>. </p>
+
+<p><code><pre>
+-callback handle_call(Request::term(), From::pid(), State::term()) -&gt; Result::{reply, Reply::term(), NewState::term()}.
+-callback handle_cast(Request::term(), State::term()) -&gt; Result::{noreply, NewState::term()}.
+-callback init(Args::term()) -&gt; Result::{ok, State::term()}.
+-callback terminate(Reason::term(), State::term()) -&gt; none().
+</pre></code></p>
+
+<p>This seems to work, though when I use <code>-behaviour(gen_server_light).</code> in the client module, I get a compiler
+warning <q>Warning: behaviour gen_server_light undefined</q>, so something appears to be not quite right.</p>
+
+<p>The limited documentation says: <q>The -callback attribute is to be preferred since the extra type information 
+can be used by tools to produce documentation or find discrepancies.</q></p>
+
+<h2>Client code</h2>
 
 <p>The key thing we do need to understand how to write our own
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_call-3">Module:handle_call(Request, From, State) -&gt; Result</a>

@@ -1,4 +1,4 @@
 %% encoding: UTF-8
 {application,futurelearn}.
-{modules,[calc,echo,echo_server,freqclient,frequency,frequency_gen,server,
-          super,talk]}.
+{modules,[echo,echo_client,freqclient,frequency,frequency_gen,
+          gen_server_light,super,talk]}.
