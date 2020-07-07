@@ -109,7 +109,12 @@ It returns ok irrespective of whether the server received and handled the messag
 I haven't included an <code>after T -> </code> section in my call function since I'm still battling to understand this.
 
 The gen_server library includes 
-<a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a>.
+<a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a> as
+an alternative to call/2 if you want to include a timeout.
+
+Besides handle_call and handle_case, there's
+<a href="https://erlang.org/doc/man/gen_server.html#Module:handle_info-2">Module:handle_info(Info, State) -> Result</a>
+which seems specifically designed to respond to timeouts and exit messages, but I haven't figure it out yet.
 
 After viewing 
 
@@ -119,7 +124,7 @@ https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkks
 I used <a href="https://erlang.org/doc/man/erlang.html#monitor-2">
 monitor(Type :: process, Item :: monitor_process_identifier()) -> MonitorRef</a>
 and <a href="https://erlang.org/doc/man/erlang.html#demonitor-1">demonitor(MonitorRef) -> true</a> to avoid a
-call waiting for eternity for a reply from a dead server as explained in this video
+call waiting for eternity for a reply from a dead server.
 
 If the server crashes before responding, call would receive a message like
 

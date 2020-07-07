@@ -119,7 +119,12 @@ cast(RegName, Request) -&gt;
 <p>I haven't included an <code>after T -&gt; </code> section in my call function since I'm still battling to understand this.</p>
 
 <p>The gen_server library includes 
-<a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -&gt; Reply</a>.</p>
+<a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -&gt; Reply</a> as
+an alternative to call/2 if you want to include a timeout.</p>
+
+<p>Besides handle_call and handle_case, there's
+<a href="https://erlang.org/doc/man/gen_server.html#Module:handle_info-2">Module:handle_info(Info, State) -&gt; Result</a>
+which seems specifically designed to respond to timeouts and exit messages, but I haven't figure it out yet.</p>
 
 <p>After viewing </p>
 
@@ -128,8 +133,8 @@ https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkks
 
 <p>I used <a href="https://erlang.org/doc/man/erlang.html#monitor-2">
 monitor(Type :: process, Item :: monitor_process_identifier()) -&gt; MonitorRef</a>
-and <a href="https://erlang.org/doc/man/erlang.html#demonitor-1">demonitor(MonitorRef) -&gt; true</a> to avoid
-call waiting for eternity for a reply from a dead server as explained in this video</p>
+and <a href="https://erlang.org/doc/man/erlang.html#demonitor-1">demonitor(MonitorRef) -&gt; true</a> to avoid a
+call waiting for eternity for a reply from a dead server.</p>
 
 <p>If the server crashes before responding, call would receive a message like</p>
 
@@ -178,7 +183,7 @@ can be used by tools to produce documentation or find discrepancies.</q></p>
 
 <h2>Client code</h2>
 
-<p>The key thing we do need to understand how to write our own
+<p>The key thing we do need to understand is how to write our own
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_call-3">Module:handle_call(Request, From, State) -&gt; Result</a>
 functions which return <code>{reply, Reply, NewState}</code>:</p>
 
@@ -209,7 +214,7 @@ which returns <code>{noreply, NewState}</code>.</p>
 
 <p><code><pre>
 handle_cast({inject, Freqs}, {Free, Allocated}) -&gt;
-  {reply, {Free ++ Freqs, Allocated}}.
+  {noreply, {Free ++ Freqs, Allocated}}.
 </pre></code></p>
 
 <h2>Parallel Map</h2>
