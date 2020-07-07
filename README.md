@@ -44,7 +44,12 @@ to run <code>test/foo_SUITE.erl</code> files whose results you can view by point
 Running <code>erl -pa ebin</code> lets you run the <em>repl</em> from the <em>myproject</em> root directory with the compiled 
 code in the ebin subdirectory in its path.
 
-<h2>1. From Problem Analysis to Data Definitions</h2>
+<h2><a href="https://htdp.org/2020-5-6/Book/part_three.html#%28part._sec~3adesigning-with-abstraction%29">
+Designing with Abstractions</h2>
+
+Erlang falls very much into the HTDP school of encouraging abstraction.
+
+<h3>1. From Problem Analysis to Data Definitions</h3>
 
 <q>Identify the information that must be represented and how it is represented in the chosen programming language. 
 Formulate data definitions and illustrate them with examples.</q>
@@ -63,7 +68,7 @@ A reason the HTDP recipe bundles these three together is they need to be done co
 is likely to change often as you get more experienced with a given language &mdash; with your code hopefully getting
 shorter and faster as your knowledge grows &mdash; it's vital to focus on "what" rather than "how" first. 
 
-<h3>2.1 Signature</h3>
+<h4>2.1 Signature</h4>
 
 <q>State what kind of data the desired function consumes and produces.</q>
 
@@ -142,7 +147,7 @@ joke checklist</a> a handy reference. Erlang checks the box for <em>dynamically-
 (the creators of the list ommited <em>optionally-typed</em>), which means it has lots of <code>is_type(X)</code> built-in functions
 (BIFs in Erlang jargon).
 
-<h3>2.2 Purpose Statement</h3>
+<h4>2.2 Purpose Statement</h4>
 
 <q>Formulate a concise answer to the question <em>what</em> the function computes.</q>
 
@@ -160,7 +165,7 @@ module's automatically generated html.
 Besides being helpful to users, writing purpose statements also helps one think of 
 suitable names for functions and their arguments to help make code self documenting.
 
-<h3>2.3 Header</h3>
+<h4>2.3 Header</h4>
 
 <q>Define a stub that lives up to the signature.</q>
 
@@ -173,7 +178,7 @@ return values are of the correct type (typically hard-coded return values to giv
 Warnings about variables in the header that are not used in the body are fine, in fact a handy reminder this is just work
 in progress. 
 
-<h2>3. Functional Examples</h2>
+<h3>3. Functional Examples</h3>
 
 <q>Work through examples that illustrate the function’s purpose.</q>
 
@@ -192,7 +197,7 @@ small projects.
 In an ideal world, the test and document tools would be integrated. Edoc isn't linked to any test framework I know of, so it's good
 practice to copy at least one illustrative example of each public function into its comment header for EDoc to put into the html.
 
-<h2>4. Function Template</h2>
+<h3>4. Function Template</h3>
 
 <q>Translate the data definitions into an outline of the function.</q>
 
@@ -203,11 +208,11 @@ Erlang's <a href="https://erlang.org/doc/design_principles/des_princ.html">OTP d
 
 A nice thing about Erlang is it encourges top-down design of big systems rather than the myopia of bottom-up design.
 
-<h2>5. Function Definition</h2>
+<h3>5. Function Definition</h3>
 
 <q>Fill in the gaps in the function template. Exploit the purpose statement and the examples.</q>
 
-<h2>6. Testing</h2>
+<h3>6. Testing</h3>
 
 <q>Articulate the examples as tests and ensure that the function passes all. Doing so discovers mistakes. 
 Tests also supplement examples in that they help others read and understand the definition when the need 
