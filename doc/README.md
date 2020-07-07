@@ -48,8 +48,8 @@ loop(State0) ->
 </pre></code>
 
 Though we don't use the <a href="https://erlang.org/doc/design_principles/gen_server_concepts.html">gen_server</a>
-through most of the course, learning the basics which is good, getting ready to replace our server code with the
-provided module. I found this also an enlightening exercise on abstraction and "don't repeat yourself" (DRY) coding.
+through most of the course, getting ready to replace our server code with the
+provided module is an enlightening exercise on abstraction and "don't repeat yourself" (DRY) coding.
 
 A function gen_server calls <a href="https://erlang.org/doc/man/gen_server.html#call-2">call(ServerRef, Request) -> Reply</a>,
 creating a good convention. There is an alternative
