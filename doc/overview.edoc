@@ -44,9 +44,7 @@ or alternatively sending
 
 <code>{cast, Request}</code> 
 
-when no response from the server is required. 
-
-This simplified my <code>loop(State)</code> function to:
+when no response from the server is required, simplified my <code>loop(State)</code> function to:
 
 <code><pre>
 loop(State0) ->
@@ -63,7 +61,8 @@ loop(State0) ->
 </pre></code>
 
 This is mainly for educational purposes since OTP applications have builtin loop functions. Similarly, 
-I've written my own versions of call and cast for learning purposes, sticking to the arguments and reply conventions of
+I've written my own versions of <code>call</code> and <code>cast</code> for learning purposes, 
+sticking to the arguments and reply conventions of
 <a href="https://erlang.org/doc/man/gen_server.html#call-2">gen_server:call(ServerRef, Request) -> Reply</a> and 
 <a href="https://erlang.org/doc/man/gen_server.html#cast-2">gen_server:cast(ServerRef, Request) -> ok</a>.
 
@@ -75,6 +74,9 @@ deallocate(Freq) -> call(frequency, {deallocate, Freq}).
 inject(Freqs)    -> cast(frequency, {inject, Freqs}).
 ...
 </pre></code>
+
+with each of the above having an associated <code>handle_call/3</code> or <code>handle_cast/2</code> function which
+I'll get to shortly.
 
 My version of <code>call/2</code> looks like:
 
@@ -116,7 +118,7 @@ https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkks
 
 I used <a href="https://erlang.org/doc/man/erlang.html#monitor-2">
 monitor(Type :: process, Item :: monitor_process_identifier()) -> MonitorRef</a>
-and <a href="https://erlang.org/doc/man/erlang.html#demonitor-1">demonitor(MonitorRef) -> true</a> to avoid
+and <a href="https://erlang.org/doc/man/erlang.html#demonitor-1">demonitor(MonitorRef) -> true</a> to avoid a
 call waiting for eternity for a reply from a dead server as explained in this video
 
 If the server crashes before responding, call would receive a message like
@@ -166,7 +168,7 @@ can be used by tools to produce documentation or find discrepancies.</q>
 
 <h2>Client code</h2>
 
-The key thing we do need to understand how to write our own
+The key thing we do need to understand is how to write our own
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_call-3">Module:handle_call(Request, From, State) -> Result</a>
 functions which return <code>{reply, Reply, NewState}</code>:
 
@@ -188,7 +190,7 @@ handle_call({deallocate, Freq}, From, {Free, Allocated}) ->
   end;
 
 handle_call(free, _From, {Free, Allocated}) ->
-   {reply, length(Free), {Free, Allocated}}.
+   {noreply, length(Free), {Free, Allocated}}.
 </pre></code>
 
 When we don't need a response from the server, we use 

@@ -10,11 +10,11 @@
 <hr>
 
 <h1>Module echo_client</h1>
-<ul class="index"><li><a href="#description">Description</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>Using gen_server conventions.
+<ul class="index"><li><a href="#description">Description</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>Toggle between my gen_server_light and OTP's gen_server by commenting and uncommenting the relevant define attribute.
 
-<p><b>Behaviours:</b> <a href="gen_server_light.html"><tt>gen_server_light</tt></a>.</p>
+<p><b>Behaviours:</b> <a href="%3fSERVER.html"><tt>?SERVER</tt></a>.</p>
 
-<h2><a name="description">Description</a></h2>Using gen_server conventions.
+<h2><a name="description">Description</a></h2>Toggle between my gen_server_light and OTP's gen_server by commenting and uncommenting the relevant define attribute.
 <h2><a name="index">Function Index</a></h2>
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#count-0">count/0</a></td><td></td></tr>
 <tr><td valign="top"><a href="#echo-1">echo/1</a></td><td></td></tr>
@@ -24,7 +24,7 @@
 <tr><td valign="top"><a href="#reset-1">reset/1</a></td><td></td></tr>
 <tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr>
 <tr><td valign="top"><a href="#stop-0">stop/0</a></td><td></td></tr>
-<tr><td valign="top"><a href="#terminate-1">terminate/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#terminate-2">terminate/2</a></td><td></td></tr>
 </table>
 
 <h2><a name="functions">Function Details</a></h2>
@@ -41,17 +41,17 @@
 
 <h3 class="function"><a name="handle_call-3">handle_call/3</a></h3>
 <div class="spec">
-<p><tt>handle_call(X1, From, N) -&gt; any()</tt></p>
+<p><tt>handle_call(Request::term(), From::pid(), State::term()) -&gt; Result::{reply, Reply::term(), NewState::term()}</tt><br></p>
 </div>
 
 <h3 class="function"><a name="handle_cast-2">handle_cast/2</a></h3>
 <div class="spec">
-<p><tt>handle_cast(X1, N) -&gt; any()</tt></p>
+<p><tt>handle_cast(Request::term(), State::term()) -&gt; Result::{noreply, NewState::term()}</tt><br></p>
 </div>
 
 <h3 class="function"><a name="init-1">init/1</a></h3>
 <div class="spec">
-<p><tt>init(Init) -&gt; any()</tt></p>
+<p><tt>init(Args::term()) -&gt; Result::{ok, State::term()}</tt><br></p>
 </div>
 
 <h3 class="function"><a name="reset-1">reset/1</a></h3>
@@ -69,9 +69,9 @@
 <p><tt>stop() -&gt; any()</tt></p>
 </div>
 
-<h3 class="function"><a name="terminate-1">terminate/1</a></h3>
+<h3 class="function"><a name="terminate-2">terminate/2</a></h3>
 <div class="spec">
-<p><tt>terminate(X1) -&gt; any()</tt></p>
+<p><tt>terminate(Reason::term(), State::term()) -&gt; ok</tt><br></p>
 </div>
 <hr>
 

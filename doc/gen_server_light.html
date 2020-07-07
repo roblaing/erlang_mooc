@@ -19,7 +19,7 @@
 <tr><td valign="top"><a href="#cast-2">cast/2</a></td><td>Asynchronous, does not need a reply from the server.</td></tr>
 <tr><td valign="top"><a href="#init-2">init/2</a></td><td></td></tr>
 <tr><td valign="top"><a href="#loop-2">loop/2</a></td><td></td></tr>
-<tr><td valign="top"><a href="#start_link-4">start_link/4</a></td><td></td></tr>
+<tr><td valign="top"><a href="#start_link-3">start_link/3</a></td><td>gen_server:start...</td></tr>
 <tr><td valign="top"><a href="#stop-1">stop/1</a></td><td></td></tr>
 </table>
 
@@ -45,10 +45,10 @@
 <p><tt>loop(Module, State0) -&gt; any()</tt></p>
 </div>
 
-<h3 class="function"><a name="start_link-4">start_link/4</a></h3>
+<h3 class="function"><a name="start_link-3">start_link/3</a></h3>
 <div class="spec">
-<p><tt>start_link(RegName::atom(), Module::module(), Args::term(), Options::[term()]) -&gt; {ok, pid()}</tt><br></p>
-</div>
+<p><tt>start_link(Module::module(), Args::term(), Options::[term()]) -&gt; {ok, pid()}</tt><br></p>
+</div><p>gen_server:start... functions don't register names, which somehow I thought they did.</p>
 
 <h3 class="function"><a name="stop-1">stop/1</a></h3>
 <div class="spec">
