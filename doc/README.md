@@ -190,7 +190,7 @@ handle_call({deallocate, Freq}, From, {Free, Allocated}) ->
   end;
 
 handle_call(free, _From, {Free, Allocated}) ->
-   {noreply, length(Free), {Free, Allocated}}.
+   {reply, length(Free), {Free, Allocated}}.
 </pre></code>
 
 When we don't need a response from the server, we use 
@@ -199,7 +199,7 @@ which returns <code>{noreply, NewState}</code>.
 
 <code><pre>
 handle_cast({inject, Freqs}, {Free, Allocated}) ->
-  {reply, {Free ++ Freqs, Allocated}}.
+  {noreply, {Free ++ Freqs, Allocated}}.
 </pre></code>
 
 <h2>Parallel Map</h2>
