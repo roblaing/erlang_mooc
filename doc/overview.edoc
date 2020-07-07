@@ -19,85 +19,110 @@ A process can simply give its return address as
 An important difference between Erlang and the Elvis song is the <em>to address</em> won't tell you 
 <q><em>... address unknown. No such number, no such zone</em></q> by default, requiring digressions into monitors and timeouts.
 
-For the frequency server example, I found my listening loop getting increasingly cluttered with stanzas since I was
-writing separate ones for allocate, deallocate, inject...
+<h1>Message idioms</h1>
 
-Both in this course and various tutorials, learners get told messages structure is arbitrary. This is misleading
-since Erlang is very much in the "convention over configuration school".
+Both in this course and various tutorials, learners get told message structure in Erlang is arbitrary. 
+This is misleading since Erlang is very much in the "convention over configuration school", and teaching 
+these conventions from the outset would make things much easier down the line.
 
-Standardising the message expected by the server loop to
+A symptom of not understanding the idioms was my frequency server example's listening loop got increasingly cluttered 
+with stanzas since I was writing separate ones for allocate, deallocate, inject...
 
-<code>{request, From, Ref, Request}</code>
+Learning the abstractions in <a href="https://erlang.org/doc/design_principles/gen_server_concepts.html">gen_server</a>
+and standardising the message expected by the server loop to 
 
-and its response to
+<code>{call, From, Ref, Request}</code> 
+
+and its response to 
 
 <code>{reply, Ref, Reply}</code>
 
-resulted in much simpler code.
+or alternatively sending 
 
-Ignoring stop and exit handling, the <code>loop(State)</code> function simplifies to:
+<code>{cast, Request}</code> 
+
+when no response from the server is required. 
+
+This simplified my <code>loop(State)</code> function to:
 
 <code><pre>
 loop(State0) ->
   receive
-    {request, From, Ref, Request} ->
+    {call, From, Ref, Request} ->
       {reply, Reply, State1} = handle_call(Request, From, State0),
       From ! {reply, Ref, Reply},
-      loop(State1)
-  end.  
+      loop(State1);
+    {cast, Request} -> 
+      {noreply, State1} = handle_cast(Request, State0),
+      loop(State1);
+    stop -> ok
+  end.
 </pre></code>
 
-Though we don't use the <a href="https://erlang.org/doc/design_principles/gen_server_concepts.html">gen_server</a>
-through most of the course, getting ready to replace our server code with the
-provided module is an enlightening exercise on abstraction and "don't repeat yourself" (DRY) coding.
+This is mainly for educational purposes since OTP applications have builtin loop functions. Similarly, 
+I've written my own versions of call and cast for learning purposes, sticking to the arguments and reply conventions of
+<a href="https://erlang.org/doc/man/gen_server.html#call-2">call(ServerRef, Request) -> Reply</a> and 
+<a href="https://erlang.org/doc/man/gen_server.html#cast-2">cast(ServerRef, Request) -> ok</a>. 
 
-A function gen_server calls <a href="https://erlang.org/doc/man/gen_server.html#call-2">call(ServerRef, Request) -> Reply</a>,
-creating a good convention. There is an alternative
-<a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a>, but I 
-personally found timeouts confusing, prefering to use 
-<a href="https://erlang.org/doc/man/erlang.html#monitor-2">
-monitor(Type :: process, Item :: monitor_process_identifier()) -> MonitorRef</a>
-and <a href="https://erlang.org/doc/man/erlang.html#demonitor-1">demonitor(MonitorRef) -> true</a> to avoid
-call waiting for eternity for a reply from a dead server as explained in this video
-
-<a href="https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc&amp;index=2">
-https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc&amp;index=2</a>
-
-What <code>call</code> lets us do is create a simple, standard template for client functions:
+What <code>call</code> and <code>cast</code> let us do is create a simple, standard template for client functions:
 
 <code><pre>
 allocate()       -> call(frequency, allocate).
 deallocate(Freq) -> call(frequency, {deallocate, Freq}).
-inject(Freqs)    -> call(frequency, {inject, Freqs}).
+inject(Freqs)    -> cast(frequency, {inject, Freqs}).
 ...
 </pre></code>
 
-My version of call looks like.
+My version of call looks like:
 
 <code><pre>
 call(RegName, Request) ->
   Ref = monitor(process, whereis(RegName)),
-  RegName ! {request, self(), Ref, Request},
+  RegName ! {call, self(), Ref, Request},
   receive
     {reply, Ref, Reply} -> 
       demonitor(Ref, [flush]), 
       Reply;
     {'DOWN', Ref, process, Pid, Info} ->
       io:format("Pid ~p Info ~p", [Pid, Info]),
-      {error, server_down}
+      {error, server_down};
+    Unknown ->
+      io:format("Don't know what to do with ~p~n", [Unknown])
   end.
 </pre></code>
+
+and cast looks like:
+
+<code><pre>
+cast(RegName, Request) ->
+  RegName ! {cast, Request},
+  ok.
+</pre></code>
+
+It returns ok irrespective of whether the server received and handled the message or not.
+
+I haven't included an <code>after T -> </code> section in my call function since I'm still battling to understand this.
+
+The gen_server library includes 
+<a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a>.
+
+After viewing 
+
+<a href="https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc&amp;index=2">
+https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc&amp;index=2</a>
+
+I used <a href="https://erlang.org/doc/man/erlang.html#monitor-2">
+monitor(Type :: process, Item :: monitor_process_identifier()) -> MonitorRef</a>
+and <a href="https://erlang.org/doc/man/erlang.html#demonitor-1">demonitor(MonitorRef) -> true</a> to avoid
+call waiting for eternity for a reply from a dead server as explained in this video
 
 If the server crashes before responding, call would receive a message like
 
 <code>{'DOWN',#Ref&lt;0.1606639298.2877292545.87648>,process,&lt;0.82.0>,normal}</code>
 
-In an OTP application, I'd simply use the provided call function instead of writing my own, and not bother about
-how the library had implemented loop.
-
 The key thing we do need to understand how to write our own
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_call-3">Module:handle_call(Request, From, State) -> Result</a>
-functions.
+functions which return <code>{reply, Reply, NewState}</code>:
 
 <code><pre>
 handle_call(allocate, _, {[], Allocated}) -> 
@@ -116,18 +141,18 @@ handle_call({deallocate, Freq}, From, {Free, Allocated}) ->
       {reply, {error, unallocated}, {Free, Allocated}}
   end;
 
-handle_call({inject, Freqs}, _From, {Free, Allocated}) ->
-  {reply, ok, {Free ++ Freqs, Allocated}};
-
 handle_call(free, _From, {Free, Allocated}) ->
    {reply, length(Free), {Free, Allocated}}.
 </pre></code>
 
+When we don't need a response from the server, we use 
+<a href="https://erlang.org/doc/man/gen_server.html#Module:handle_cast-2">Module:handle_cast(Request, State) -> Result</a>
+which returns <code>{noreply, NewState}</code>.
 
-https://erlang.org/doc/design_principles/gen_server_concepts.html
-
-https://erlang.org/doc/man/gen_server.html
-
+<code><pre>
+handle_cast({inject, Freqs}, {Free, Allocated}) ->
+  {reply, {Free ++ Freqs, Allocated}}.
+</pre></code>
 
 <h2>Parallel Map</h2>
 
