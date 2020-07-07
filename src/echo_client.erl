@@ -1,4 +1,4 @@
-%% @doc Using gen_server conventions.
+%% @doc Toggle between my gen_server_light and OTP's gen_server by commenting and uncommenting the relevant define attribute.
 -module(echo_client).
 -export([ start_link/0
         , terminate/2
@@ -10,13 +10,16 @@
         , handle_call/3
         , handle_cast/2
         ]).
--behaviour(gen_server_light).
+% -define(SERVER, gen_server).
+-define(SERVER, gen_server_light).
+-behaviour(?SERVER).
 
 start_link() ->
-  gen_server_light:start_link(echo, ?MODULE, 0, []).
+  {ok, Pid} = ?SERVER:start_link(?MODULE, 0, []),
+  register(echo, Pid).
 
 stop() -> 
-  gen_server_light:stop(echo),
+  ?SERVER:stop(echo),
   stopped.
 
 -spec terminate(Reason::term(), State::term()) -> ok.
@@ -26,9 +29,9 @@ terminate(normal, _) -> ok.
 init(Init) -> {ok, Init}.
 
 %% Functional interfaces.
-count()   -> gen_server_light:call(echo, count).
-echo(Msg) -> gen_server_light:call(echo, {echo, Msg}).
-reset(X)  -> gen_server_light:cast(echo, {reset, X}).
+count()   -> ?SERVER:call(echo, count).
+echo(Msg) -> ?SERVER:call(echo, {echo, Msg}).
+reset(X)  -> ?SERVER:cast(echo, {reset, X}).
 
 -spec handle_call(Request::term(), From::pid(), State::term()) -> Result::{reply, Reply::term(), NewState::term()}.
 handle_call(count, _From, N) -> 
