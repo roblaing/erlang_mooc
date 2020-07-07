@@ -1,7 +1,7 @@
 %% @doc Using gen_server conventions.
 -module(echo_client).
 -export([ start_link/0
-        , terminal/1
+        , terminate/2
         , init/1
         , count/0
         , echo/1
@@ -10,30 +10,33 @@
         , handle_call/3
         , handle_cast/2
         ]).
+-behaviour(gen_server_light).
 
 start_link() ->
-  gen_server_light:start_link(echo_client, 0).
+  gen_server_light:start_link(echo, ?MODULE, 0, []).
 
 stop() -> 
-  gen_server_light:stop(echo_client),
+  gen_server_light:stop(echo),
   stopped.
 
-terminal(_) -> ok.
+-spec terminate(Reason::term(), State::term()) -> ok.
+terminate(normal, _) -> ok.
 
-init(Init) -> Init.
+-spec init(Args::term()) -> Result::{ok, State::term()}.
+init(Init) -> {ok, Init}.
 
 %% Functional interfaces.
-count()   -> gen_server_light:call(echo_client, count).
-echo(Msg) -> gen_server_light:call(echo_client, {echo, Msg}).
-reset(X)  -> gen_server_light:cast(echo_client, {reset, X}).
+count()   -> gen_server_light:call(echo, count).
+echo(Msg) -> gen_server_light:call(echo, {echo, Msg}).
+reset(X)  -> gen_server_light:cast(echo, {reset, X}).
 
+-spec handle_call(Request::term(), From::pid(), State::term()) -> Result::{reply, Reply::term(), NewState::term()}.
 handle_call(count, _From, N) -> 
   {reply, N, N};
 handle_call({echo, Msg}, _From, N) ->
   {reply, Msg, N+1}.
 
+-spec handle_cast(Request::term(), State::term()) -> Result::{noreply, NewState::term()}.
 handle_cast({reset, X}, _N) ->
-  {noreply, X};
-handle_cast(stop, N) ->
-  {noreply, N}.
+  {noreply, X}.
 

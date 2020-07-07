@@ -22,7 +22,7 @@ An important difference between Erlang and the Elvis song is the <em>to address<
 <h1>Message idioms</h1>
 
 There's a tendancy to tell Erlang novices in tutorials that message structure is arbitrary. 
-I think this misleading since Erlang is very much in the "convention over configuration school", and teaching 
+I think this misleading since Erlang is very much in the "convention over configuration" school, and teaching 
 these conventions from the outset would make things much easier down the line.
 
 A symptom of not understanding the idioms was my frequency server example's listening loop got increasingly cluttered 
@@ -58,7 +58,7 @@ loop(State0) ->
     {cast, Request} -> 
       {noreply, State1} = handle_cast(Request, State0),
       loop(State1);
-    stop -> ok
+    stop -> terminate(normal, State0)
   end.
 </pre></code>
 
