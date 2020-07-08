@@ -8,7 +8,8 @@
         , loop/2
         ]).
 
--callback handle_call(Request::term(), From::pid(), State::term()) -> Result::{reply, Reply::term(), NewState::term()}.
+-callback handle_call(Request::term(), {From::pid(), Ref::reference()}, State::term()) -> 
+  Result::{reply, Reply::term(), NewState::term()}.
 -callback handle_cast(Request::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback init(Args::term()) -> Result::{ok, State::term()}.
 -callback terminate(Reason::term(), State::term()) -> term(). % should be none()
@@ -31,14 +32,19 @@ init(Module, Args) ->
 loop(Module, State0) ->
   receive
     {call, From, Ref, Request} ->
-      {reply, Reply, State1} = Module:handle_call(Request, From, State0),
+      {reply, Reply, State1} = Module:handle_call(Request, {From, Ref}, State0),
       From ! {reply, Ref, Reply},
       loop(Module, State1);
     {cast, Request} -> 
       {noreply, State1} = Module:handle_cast(Request, State0),
       loop(Module, State1);
-    stop -> Module:terminate(normal, State0)
-  % after T -> {noreply, State1} = Module:handle_info(T, State0)
+    stop -> Module:terminate(normal, State0);
+    Unknown -> 
+      {noreply, State1} = Module:handle_info(Unknown, State0),
+      loop(Module, State1)
+    %after 5000 -> 
+    %  {noreply, State1} = Module:handle_info(5000, State0),
+    %  loop(Module, State1)
   end.  
 
 call(RegName, Request) ->

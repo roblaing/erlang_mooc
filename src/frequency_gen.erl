@@ -4,139 +4,116 @@
 -module(frequency_gen).
 -export([ start/0
         , stop/0
+        , init/1
         , allocate/0
         , deallocate/1
         , inject/2
-        , init/1
-        , loop/1
+        , report/0
+        , handle_call/3
+        , handle_cast/2
+        , handle_info/2
+        , terminate/2
         , test/0
         ]).
 -vsn(1.0).
+-define(SERVER, gen_server).
+% -define(SERVER, gen_server_light).
+-behaviour(?SERVER).
 
 -type state() :: {Free::[Freq::integer()], Allocated::[{Freq::integer(), Pid::pid()}]}.
 
--spec start() -> true.
+-spec start() -> ok.
 %% @doc spawn and register the frequency servers.
-start() -> 
-  register(frequency1, spawn(frequency_gen, init, [{[10,11,12,13,14,15],[]}])),
-  register(frequency2, spawn(frequency_gen, init, [{[20,21,22,23,24,25],[]}])).
+start() ->
+  ?SERVER:start_link({local, frequency1}, ?MODULE, {[10,11,12,13,14,15],[]}, []),
+  ?SERVER:start_link({local, frequency2}, ?MODULE, {[20,21,22,23,24,25],[]}, []),
+  ok.
 
--spec init(Init::state()) -> ok.
-%% @doc this is only public to make spawn happy.
-init(Init) ->
-  io:format("Starting...~n"),
-  loop(Init).
-
--spec loop(State :: state()) -> ok.
-%% @doc needs to be public for hot module reloading to work.
-loop(State0) ->
-  % timer:sleep(1000), % simulate busy server
-  receive
-    {request, From, Ref, stop} ->
-      terminate(shutdown, State0),
-      From ! {reply, Ref, stopped};
-    {request, From, Ref, Request} ->
-      {reply, Reply, State1} = handle_call(Request, From, State0),
-      From ! {reply, Ref, Reply},
-      loop(State1);
-    {'EXIT', From, Reason} ->  % handle_info/2 in gen_server
-      io:format("~p exited: ~p~n", [From, Reason]),
-      State1 = exited(State0, From),
-      loop(State1);
-    Unknown ->
-      io:format("Received unknown message ~p~n", [Unknown]),
-      loop(State0)
-  end.
-
--spec call(RegName::atom(), Request :: term()) -> Response :: term().
-%% @doc I changed the name from request to call after discovering that's the OTP idiom.
-call(RegName, Request) ->
-  Ref = monitor(process, whereis(RegName)),
-  RegName ! {request, self(), Ref, Request},
-  receive
-    {reply, Ref, Reply} -> 
-      demonitor(Ref, [flush]), 
-      Reply;
-    {'DOWN', Ref, process, Pid, Info} ->
-      io:format("Pid ~p Info ~p", [Pid, Info]),
-      {error, server_down};
-    Unknown ->
-      io:format("Don't know what to do with ~p~n", [Unknown])
-  end.
+-spec init(Init::state()) -> {ok, Init::state()}.
+%% @doc Required by -behaviour(gen_server), must return an {ok, term()} tuple.
+init(Init) -> 
+  {ok, Init}.
 
 -spec stop() -> stopped.
 %% @doc call normal exit on clients and break listening loop
 stop() ->
-  call(frequency1, stop),
-  call(frequency2, stop).
+  ?SERVER:stop(frequency1),
+  ?SERVER:stop(frequency2),
+  stopped.
+
+-spec terminate(Reason::atom(), State::state()) -> ok.
+%% @doc Optional for -behaviour(gen_server), should return none(), but not sure how to do that.
+terminate(Reason, {_, []}) -> 
+  io:format("Terminated...~p~n", [Reason]);
+terminate(Reason, {Free, [{_, Pid}|Allocated]}) ->
+  unlink(Pid), 
+  exit(Pid, normal),
+  terminate(Reason, {Free, Allocated}).
 
 -spec allocate() -> {ok, Freq::integer()} | {error, no_frequency}.
 %% @doc allocate a frequency, if possible.
 allocate() ->
-  Free1 = call(frequency1, free),
-  Free2 = call(frequency2, free),
+  Free1 = ?SERVER:call(frequency1, free),
+  Free2 = ?SERVER:call(frequency2, free),
   if
-    Free1 >= Free2 -> call(frequency1, allocate);
-    Free1 < Free2  -> call(frequency2, allocate)
+    Free1 >= Free2 -> ?SERVER:call(frequency1, allocate);
+    Free1 < Free2  -> ?SERVER:call(frequency2, allocate)
   end.
 
 -spec deallocate(Freq::integer()) -> ok | {error, unallocated}.
 %% @doc deallocate a frequency.
 deallocate(Freq) ->
   if
-    Freq >= 10, Freq =< 15 -> call(frequency1, {deallocate, Freq});
-    Freq >= 20, Freq =< 25 -> call(frequency2, {deallocate, Freq});
-    true -> call(frequency1, {deallocate, Freq}) % for unallocated error test
+    Freq >= 10, Freq =< 15 -> ?SERVER:call(frequency1, {deallocate, Freq});
+    Freq >= 20, Freq =< 25 -> ?SERVER:call(frequency2, {deallocate, Freq});
+    true -> ?SERVER:call(frequency1, {deallocate, Freq}) % for unallocated error test
   end.
 
 -spec inject(Server :: atom(), [Freqs::integer()]) -> ok.
 %% @doc append additionals Freqs to Free list.
 inject(Server, Freqs) ->
-  call(Server, {inject, Freqs}).
+  ?SERVER:cast(Server, {inject, Freqs}).
 
--spec exited(State0::state(), Pid::pid()) -> State1::state().
-%% @doc Handle {'EXIT', Pid, Reason} messages.
-exited({Free, Allocated}, Pid) ->
-  case lists:keyfind(Pid, 2, Allocated) of
-    {Freq, Pid} -> 
-      {[Freq|Free], proplists:delete(Freq, Allocated)};
-    false       -> 
-      {Free, Allocated}
-  end.
+-spec report() -> ok.
+%% Print current state of each server
+report() ->
+  io:format("Server 1 -- "),
+  ?SERVER:call(frequency1, report),
+  io:format("Server 2 -- "),
+  ?SERVER:call(frequency2, report).
 
-% https://erlang.org/doc/man/gen_server.html#Module:terminate-2 Module:terminate(Reason, State)
-terminate(shutdown, {_, []}) -> 
-  io:format("Terminated...~n"),
-  ok;
-terminate(shutdown, {Free, [{_, Pid}|Allocated]}) ->
-  unlink(Pid), % Just to be safe, though shouldn't be needed if exit Reason is normal
-  exit(Pid, normal),
-  terminate(shutdown, {Free, Allocated}).
-
--spec handle_call(Request::term(), From::pid(), State0::state()) -> {reply, Reply::term(), State1::state()}.
+-spec handle_call(Request::term(), {From::pid(), Ref::reference()}, State0::state()) -> {reply, Reply::term(), State1::state()}.
 %% @doc {reply,Reply,NewState}
 handle_call(allocate, _, {[], Allocated}) -> 
   {reply, {error, no_frequency}, {[], Allocated}};
-handle_call(allocate, From, {[Freq|Free], Allocated}) ->
-  link(From),
-  {reply, {ok, Freq}, {Free, [{Freq, From}|Allocated]}};
+handle_call(allocate, {Pid, _}, {[Freq|Free], Allocated}) ->
+  link(Pid),
+  {reply, {ok, Freq}, {Free, [{Freq, Pid}|Allocated]}};
 
 %% @doc Assumes deallocate request comes from associated Pid. Could add another error message for when that's not the case.
-handle_call({deallocate, Freq}, From, {Free, Allocated}) ->
-  case lists:member({Freq, From}, Allocated) of
-    true ->
-      unlink(From),
-      {reply, ok, {[Freq|Free], proplists:delete(Freq, Allocated)}};
+handle_call({deallocate, Freq}, {Pid, _Ref}, {Free, Allocated}) ->
+  case lists:member({Freq, Pid}, Allocated) of
+    true  ->
+      unlink(Pid),
+      {reply, ok, {[Freq|Free], lists:delete({Freq, Pid}, Allocated)}};
     false ->
       io:format("Unallocated frequency ~p~n", [Freq]),
       {reply, {error, unallocated}, {Free, Allocated}}
   end;
 
-handle_call({inject, Freqs}, _From, {Free, Allocated}) ->
-  {reply, ok, {Free ++ Freqs, Allocated}};
-
 handle_call(free, _From, {Free, Allocated}) ->
-   {reply, length(Free), {Free, Allocated}}.
+   {reply, length(Free), {Free, Allocated}};
+
+handle_call(report, _From, {Free, Allocated}) ->
+  io:format("Free: ~p Allocated ~p~n", [length(Free), length(Allocated)]),
+  {reply, ok, {Free, Allocated}}.
+
+handle_cast({inject, Freqs}, {Free, Allocated}) ->
+  {noreply, {Free ++ Freqs, Allocated}}.
+
+handle_info(Info, State) ->
+  io:format("Received unknown message ~p~n", [Info]),
+  {noreply, State}.
 
 %% frequency_gen:test().
 %% rather use freqclient:random_test(1000).

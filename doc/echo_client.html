@@ -24,7 +24,7 @@
 <tr><td valign="top"><a href="#reset-1">reset/1</a></td><td></td></tr>
 <tr><td valign="top"><a href="#start_link-0">start_link/0</a></td><td></td></tr>
 <tr><td valign="top"><a href="#stop-0">stop/0</a></td><td></td></tr>
-<tr><td valign="top"><a href="#terminate-2">terminate/2</a></td><td></td></tr>
+<tr><td valign="top"><a href="#terminate-2">terminate/2</a></td><td>Tried using shutdown instead of normal, and caused stop to break.</td></tr>
 </table>
 
 <h2><a name="functions">Function Details</a></h2>
@@ -72,7 +72,7 @@
 <h3 class="function"><a name="terminate-2">terminate/2</a></h3>
 <div class="spec">
 <p><tt>terminate(Reason::term(), State::term()) -&gt; ok</tt><br></p>
-</div>
+</div><p>Tried using shutdown instead of normal, and caused stop to break.</p>
 <hr>
 
 <div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>

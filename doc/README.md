@@ -32,6 +32,11 @@ The code I wrote while learning this is at <a href="https://github.com/roblaing/
 gen_server_light.erl</a>, based on 
 <a href="https://erlang.org/doc/design_principles/gen_server_concepts.html">gen_server</a>.
 
+<b>Something that tripped me up a few times with gen_server is tuple arguments. For instance, the first argument of
+<code>start_link/4, ServerName</code>, should be <code>{local, RegName}</code>, the <code>From</code> 
+argument in handle_call is a tuple <code>{pid(), reference()}</code>, and the return value from 
+<code>Module:init(Arg)</code> needs to be <code>{ok, State}</code>.</b>
+
 Standardising the message expected by the server loop to 
 
 <code>{call, From, Ref, Request}</code> 
@@ -50,7 +55,7 @@ when no response from the server is required, simplified my <code>loop(State)</c
 loop(State0) ->
   receive
     {call, From, Ref, Request} ->
-      {reply, Reply, State1} = handle_call(Request, From, State0),
+      {reply, Reply, State1} = handle_call(Request, {From, Ref}, State0),
       From ! {reply, Ref, Reply},
       loop(State1);
     {cast, Request} -> 
@@ -112,10 +117,6 @@ The gen_server library includes
 <a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a> as
 an alternative to call/2 if you want to include a timeout.
 
-Besides handle_call and handle_case, there's
-<a href="https://erlang.org/doc/man/gen_server.html#Module:handle_info-2">Module:handle_info(Info, State) -> Result</a>
-which seems specifically designed to respond to timeouts and exit messages, but I haven't figure it out yet.
-
 After viewing 
 
 <a href="https://www.youtube.com/watch?v=upGZMJBh81A&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc&amp;index=2">
@@ -159,7 +160,8 @@ a google search I found described at
 The syntax for <code>-callback</code> is the same as <code>-spec</code>. 
 
 <code><pre>
--callback handle_call(Request::term(), From::pid(), State::term()) -> Result::{reply, Reply::term(), NewState::term()}.
+-callback handle_call(Request::term(), {From::pid(), Ref:reference()}, State::term()) -> 
+   Result::{reply, Reply::term(), NewState::term()}.
 -callback handle_cast(Request::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback init(Args::term()) -> Result::{ok, State::term()}.
 -callback terminate(Reason::term(), State::term()) -> none().
@@ -180,7 +182,7 @@ functions which return <code>{reply, Reply, NewState}</code>:
 <code><pre>
 handle_call(allocate, _, {[], Allocated}) -> 
   {reply, {error, no_frequency}, {[], Allocated}};
-handle_call(allocate, From, {[Freq|Free], Allocated}) ->
+handle_call(allocate, {From, Ref}, {[Freq|Free], Allocated}) ->
   link(From),
   {reply, {ok, Freq}, {Free, [{Freq, From}|Allocated]}};
 
@@ -206,6 +208,10 @@ which returns <code>{noreply, NewState}</code>.
 handle_cast({inject, Freqs}, {Free, Allocated}) ->
   {noreply, {Free ++ Freqs, Allocated}}.
 </pre></code>
+
+Besides handle_call and handle_case, there's
+<a href="https://erlang.org/doc/man/gen_server.html#Module:handle_info-2">Module:handle_info(Info, State) -> Result</a>
+which seems specifically designed to respond to timeouts and exit messages, but I haven't figure it out yet.
 
 <h2>Parallel Map</h2>
 
@@ -343,3 +349,4 @@ https://dl.acm.org/doi/10.1145/1596550.1596574
 https://www.youtube.com/watch?v=9HVvzSsdW9k&amp;list=PLR812eVbehlx6vgWGf2FLHjkksAEDmFjc
 
 
+https://www.youtube.com/watch?v=YaUPdgtUYko

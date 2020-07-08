@@ -22,7 +22,9 @@ stop() ->
   stopped.
 
 -spec terminate(Reason::term(), State::term()) -> ok.
-terminate(normal, _) -> ok.
+%% @doc Tried using shutdown instead of normal, and caused stop to break.
+terminate(Reason, _) ->
+  io:format("Terminated...~p~n", [Reason]).
 
 -spec init(Args::term()) -> Result::{ok, State::term()}.
 init(Init) -> {ok, Init}.
