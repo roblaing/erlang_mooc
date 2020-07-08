@@ -15,10 +15,10 @@
 -callback init(Args::term()) -> Result::{ok, State::term()}.
 -callback terminate(Reason::term(), State::term()) -> none(). 
 
--spec start_link({local, RegName::atom()}, Module::module(), Args::term(), Options::[term()]) -> {ok, pid()}.
-%% @doc gen_server:start... functions don't register names, which somehow I thought they did.
-start_link({local, RegName}, Module, Args, _Options) ->
-  Pid = spawn_link(?MODULE, init, [Module, Args]),
+-spec start_link({local, RegName::atom()}, Module::module(), Arg::term(), Options::[term()]) -> {ok, pid()}.
+%% @doc The original documentation says Args, leading to a common mistake of thinking there are surrounding list brackets.
+start_link({local, RegName}, Module, Arg, _Options) ->
+  Pid = spawn_link(?MODULE, init, [Module, Arg]),
   register(RegName, Pid),
   {ok, Pid}.
 
@@ -26,7 +26,7 @@ stop(Name) ->
   Name ! stop,
   stopped.
 
-init(Module, Args) ->
+init(Module, Arg) ->
   {ok, Init} = Module:init(Args),
   loop(Module, Init).
 

@@ -29,8 +29,8 @@ A symptom of not understanding the idioms was my frequency server example's list
 with stanzas since I was writing separate ones for allocate, deallocate, inject...
 
 The code I wrote while learning this is at <a href="https://github.com/roblaing/erlang_mooc/blob/master/src/gen_server_light.erl">
-gen_server_light.erl</a>, based on 
-<a href="https://erlang.org/doc/design_principles/gen_server_concepts.html">gen_server</a>.
+gen_server_light.erl</a>, which tries to be compatible with 
+<a href="https://erlang.org/doc/design_principles/gen_server_concepts.html">gen_server</a> since I don't find it easy to understand.
 
 <b>Something that tripped me up a few times with gen_server is tuple arguments. For instance, the first argument of
 <code>start_link/4, ServerName</code>, should be <code>{local, RegName}</code>, the <code>From</code> 
