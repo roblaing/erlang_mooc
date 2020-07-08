@@ -10,13 +10,12 @@
         , handle_call/3
         , handle_cast/2
         ]).
-% -define(SERVER, gen_server).
--define(SERVER, gen_server_light).
+-define(SERVER, gen_server).
+% -define(SERVER, gen_server_light).
 -behaviour(?SERVER).
 
 start_link() ->
-  {ok, Pid} = ?SERVER:start_link(?MODULE, 0, []),
-  register(echo, Pid).
+  ?SERVER:start_link({local, echo}, ?MODULE, 0, []).
 
 stop() -> 
   ?SERVER:stop(echo),

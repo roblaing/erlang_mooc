@@ -1,6 +1,6 @@
 %% @doc Using gen_server conventions.
 -module(gen_server_light).
--export([ start_link/3
+-export([ start_link/4
         , stop/1
         , call/2
         , cast/2
@@ -11,12 +11,13 @@
 -callback handle_call(Request::term(), From::pid(), State::term()) -> Result::{reply, Reply::term(), NewState::term()}.
 -callback handle_cast(Request::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback init(Args::term()) -> Result::{ok, State::term()}.
--callback terminate(Reason::term(), State::term()) -> none().
+-callback terminate(Reason::term(), State::term()) -> term(). % should be none()
 
--spec start_link(Module::module(), Args::term(), Options::[term()]) -> {ok, pid()}.
-%% @doc gen_server:start... functions doen't register names, which somehow I thought they did.
-start_link(Module, Args, _Options) ->
+-spec start_link({local, RegName::atom()}, Module::module(), Args::term(), Options::[term()]) -> {ok, pid()}.
+%% @doc gen_server:start... functions don't register names, which somehow I thought they did.
+start_link({local, RegName}, Module, Args, _Options) ->
   Pid = spawn_link(?MODULE, init, [Module, Args]),
+  register(RegName, Pid),
   {ok, Pid}.
 
 stop(Name) -> 
