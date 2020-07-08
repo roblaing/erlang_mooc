@@ -12,10 +12,10 @@
 client() ->
   receive
     {From, call} -> 
-      From ! frequency:allocate(),
+      From ! frequency_gen:allocate(),
       client();
     {From, hangup, Freq} -> 
-      From ! frequency:deallocate(Freq);
+      From ! frequency_gen:deallocate(Freq);
     Msg -> 
       io:format("Unexpected client() message ~p~n", [Msg]),
       client()
@@ -57,9 +57,9 @@ kill_client({_, Pid}) ->
 -spec random_test(N::integer()) -> ok.
 %% Loop N times, randomly adding, deleting or killing clients.
 random_test(N) ->
-  frequency:start(),
+  frequency_gen:start(),
   simulate(N, [add_client(), add_client(), add_client(), add_client()]),
-  frequency:stop().
+  frequency_gen:stop().
 
 simulate(0, _) -> ok;
 simulate(N, []) ->

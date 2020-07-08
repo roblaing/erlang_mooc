@@ -27,20 +27,20 @@ stop(Name) ->
   stopped.
 
 init(Module, Arg) ->
-  {ok, Init} = Module:init(Args),
+  {ok, Init} = Module:init(Arg),
   loop(Module, Init).
 
 loop(Module, State0) ->
   receive
-    {call, From, Ref, Request} ->
-      {reply, Reply, State1} = Module:handle_call(Request, {From, Ref}, State0),
-      From ! {reply, Ref, Reply},
+    {call, Pid, Ref, Request} ->
+      {reply, Reply, State1} = Module:handle_call(Request, {Pid, Ref}, State0),
+      Pid ! {reply, Ref, Reply},
       loop(Module, State1);
     {cast, Request} -> 
       {noreply, State1} = Module:handle_cast(Request, State0),
       loop(Module, State1);
     stop -> Module:terminate(normal, State0);
-    Unknown -> 
+    Unknown -> % includes {'EXIT', Pid, Reason} when process_flag(trap_exit, true)
       {noreply, State1} = Module:handle_info(Unknown, State0),
       loop(Module, State1)
     %after 5000 -> 

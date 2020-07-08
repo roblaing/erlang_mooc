@@ -16,8 +16,8 @@
         , test/0
         ]).
 -vsn(1.0).
-% -define(SERVER, gen_server).
--define(SERVER, gen_server_light).
+-define(SERVER, gen_server).
+% -define(SERVER, gen_server_light).
 -behaviour(?SERVER).
 
 -type state() :: {Free::[Freq::integer()], Allocated::[{Freq::integer(), Pid::pid()}]}.
@@ -31,7 +31,8 @@ start() ->
 
 -spec init(Init::state()) -> {ok, Init::state()}.
 %% @doc Required by -behaviour(gen_server), must return an {ok, term()} tuple.
-init(Init) -> 
+init(Init) ->
+  process_flag(trap_exit, true),
   {ok, Init}.
 
 -spec stop() -> stopped.
@@ -110,6 +111,15 @@ handle_call(report, _From, {Free, Allocated}) ->
 
 handle_cast({inject, Freqs}, {Free, Allocated}) ->
   {noreply, {Free ++ Freqs, Allocated}}.
+
+handle_info({'EXIT', Pid, Reason}, {Free, Allocated}) ->
+  io:format("~p exited: ~p~n", [Pid, Reason]),
+  case lists:keyfind(Pid, 2, Allocated) of
+    {Freq, Pid} -> 
+      {noreply, {[Freq|Free], proplists:delete(Freq, Allocated)}};
+    false       -> 
+      {noreply, {Free, Allocated}}
+  end;
 
 handle_info(Info, State) ->
   io:format("Received unknown message ~p~n", [Info]),
