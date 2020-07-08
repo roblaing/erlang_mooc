@@ -21,14 +21,6 @@ client() ->
       client()
   end.
 
-%clear() ->
-%  receive
-%    Msg -> 
-%      io:format("Received ~p after timeout~n", [Msg]), 
-%      clear()
-%  after 0 -> ok
-%  end.
-
 -spec add_client() -> {Freq::integer(), Pid::pid()} | {error, no_frequency}.
 %% @doc Create a fresh client process and allocate a frequency if one is free, else kill process and return no_frequency message.
 add_client() ->

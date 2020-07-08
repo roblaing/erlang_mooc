@@ -38,14 +38,16 @@ init(Init) ->
 -spec stop() -> stopped.
 %% @doc call normal exit on clients and break listening loop
 stop() ->
+  io:format("Stopping frequency1... "),
   ?SERVER:stop(frequency1),
+  io:format("Stopping frequency2... "),
   ?SERVER:stop(frequency2),
   stopped.
 
 -spec terminate(Reason::atom(), State::state()) -> ok.
 %% @doc Optional for -behaviour(gen_server), should return none(), but not sure how to do that.
 terminate(Reason, {_, []}) -> 
-  io:format("Terminated...~p~n", [Reason]);
+  io:format("~p~n", [Reason]);
 terminate(Reason, {Free, [{_, Pid}|Allocated]}) ->
   unlink(Pid), 
   exit(Pid, normal),

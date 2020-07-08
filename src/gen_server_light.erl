@@ -9,7 +9,7 @@
         ]).
 
 -callback handle_call(Request::term(), {From::pid(), Ref::reference()}, State::term()) -> 
-  Result::{reply, Reply::term(), NewState::term()}.
+  Result :: {reply, Reply::term(), NewState::term()} | {stop, Reason::term(), NewState::term()}.
 -callback handle_cast(Request::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback handle_info(Info::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback init(Args::term()) -> Result::{ok, State::term()}.
