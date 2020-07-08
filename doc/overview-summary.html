@@ -170,9 +170,10 @@ a google search I found described at
 <p>The syntax for <code>-callback</code> is the same as <code>-spec</code>. </p>
 
 <p><code><pre>
--callback handle_call(Request::term(), {From::pid(), Ref:reference()}, State::term()) -&gt; 
-   Result::{reply, Reply::term(), NewState::term()}.
+-callback handle_call(Request::term(), {From::pid(), Ref::reference()}, State::term()) -&gt; 
+  Result::{reply, Reply::term(), NewState::term()}.
 -callback handle_cast(Request::term(), State::term()) -&gt; Result::{noreply, NewState::term()}.
+-callback handle_info(Info::term(), State::term()) -&gt; Result::{noreply, NewState::term()}.
 -callback init(Args::term()) -&gt; Result::{ok, State::term()}.
 -callback terminate(Reason::term(), State::term()) -&gt; none().
 </pre></code></p>

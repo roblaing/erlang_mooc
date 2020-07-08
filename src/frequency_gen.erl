@@ -16,8 +16,8 @@
         , test/0
         ]).
 -vsn(1.0).
--define(SERVER, gen_server).
-% -define(SERVER, gen_server_light).
+% -define(SERVER, gen_server).
+-define(SERVER, gen_server_light).
 -behaviour(?SERVER).
 
 -type state() :: {Free::[Freq::integer()], Allocated::[{Freq::integer(), Pid::pid()}]}.
@@ -82,15 +82,15 @@ report() ->
   io:format("Server 2 -- "),
   ?SERVER:call(frequency2, report).
 
--spec handle_call(Request::term(), {From::pid(), Ref::reference()}, State0::state()) -> {reply, Reply::term(), State1::state()}.
-%% @doc {reply,Reply,NewState}
+-spec handle_call(Request::term(), {Pid::pid(), Ref::reference()}, State0::state()) -> {reply, Reply::term(), State1::state()}.
+%% @doc Note second argument From is a tuple {Pid, Ref}. This tripped me up rewriting the code.
 handle_call(allocate, _, {[], Allocated}) -> 
   {reply, {error, no_frequency}, {[], Allocated}};
 handle_call(allocate, {Pid, _}, {[Freq|Free], Allocated}) ->
   link(Pid),
   {reply, {ok, Freq}, {Free, [{Freq, Pid}|Allocated]}};
 
-%% @doc Assumes deallocate request comes from associated Pid. Could add another error message for when that's not the case.
+%% @doc Assumes deallocate request comes from the associated Pid. Could add another error message for when that's not the case.
 handle_call({deallocate, Freq}, {Pid, _Ref}, {Free, Allocated}) ->
   case lists:member({Freq, Pid}, Allocated) of
     true  ->

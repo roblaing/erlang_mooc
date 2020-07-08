@@ -26,11 +26,12 @@
 <h2><a name="index">Function Index</a></h2>
 <table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#allocate-0">allocate/0</a></td><td>allocate a frequency, if possible.</td></tr>
 <tr><td valign="top"><a href="#deallocate-1">deallocate/1</a></td><td>deallocate a frequency.</td></tr>
-<tr><td valign="top"><a href="#handle_call-3">handle_call/3</a></td><td>{reply,Reply,NewState}.</td></tr>
+<tr><td valign="top"><a href="#handle_call-3">handle_call/3</a></td><td>Note second argument From is a tuple {Pid, Ref}.</td></tr>
 <tr><td valign="top"><a href="#handle_cast-2">handle_cast/2</a></td><td></td></tr>
 <tr><td valign="top"><a href="#handle_info-2">handle_info/2</a></td><td></td></tr>
 <tr><td valign="top"><a href="#init-1">init/1</a></td><td>Required by -behaviour(gen_server), must return an {ok, term()} tuple.</td></tr>
 <tr><td valign="top"><a href="#inject-2">inject/2</a></td><td>append additionals Freqs to Free list.</td></tr>
+<tr><td valign="top"><a href="#report-0">report/0</a></td><td></td></tr>
 <tr><td valign="top"><a href="#start-0">start/0</a></td><td>spawn and register the frequency servers.</td></tr>
 <tr><td valign="top"><a href="#stop-0">stop/0</a></td><td>call normal exit on clients and break listening loop.</td></tr>
 <tr><td valign="top"><a href="#terminate-2">terminate/2</a></td><td>Optional for -behaviour(gen_server), should return none(), but not sure how to do that.</td></tr>
@@ -51,8 +52,8 @@
 
 <h3 class="function"><a name="handle_call-3">handle_call/3</a></h3>
 <div class="spec">
-<p><tt>handle_call(Request::term(), From::pid(), State0::<a href="#type-state">state()</a>) -&gt; {reply, Reply::term(), State1::<a href="#type-state">state()</a>}</tt><br></p>
-</div><p>{reply,Reply,NewState}</p>
+<p><tt>handle_call(Request::term(), From::{Pid::pid(), Ref::reference()}, State0::<a href="#type-state">state()</a>) -&gt; {reply, Reply::term(), State1::<a href="#type-state">state()</a>}</tt><br></p>
+</div><p>Note second argument From is a tuple {Pid, Ref}. This tripped me up rewriting the code.</p>
 
 <h3 class="function"><a name="handle_cast-2">handle_cast/2</a></h3>
 <div class="spec">
@@ -73,6 +74,11 @@
 <div class="spec">
 <p><tt>inject(Server::atom(), Freqs::[Freqs::integer()]) -&gt; ok</tt><br></p>
 </div><p>append additionals Freqs to Free list.</p>
+
+<h3 class="function"><a name="report-0">report/0</a></h3>
+<div class="spec">
+<p><tt>report() -&gt; ok</tt><br></p>
+</div>
 
 <h3 class="function"><a name="start-0">start/0</a></h3>
 <div class="spec">
