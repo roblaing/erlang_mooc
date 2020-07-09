@@ -17,7 +17,8 @@ A process can simply give its return address as
 <a href="https://erlang.org/doc/man/erlang.html#self-0">self()</a>.
 
 An important difference between Erlang and the Elvis song is the <em>to address</em> won't tell you 
-<q><em>... address unknown. No such number, no such zone</em></q> by default, requiring digressions into monitors and timeouts.
+<q><em>... address unknown. No such number, no such zone</em></q> by if there's a quarrel, 
+requiring digressions into monitors and timeouts.
 
 <h1>Message idioms</h1>
 
