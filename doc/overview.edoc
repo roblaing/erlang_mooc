@@ -237,10 +237,50 @@ do(Parent, F, X) ->
 For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
 to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.
 
+<h2>Futures</h2>
+
 Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
-block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.
+block doesn't need to be in the function that makes the initial call, but can be in a subsidiary function.
 
+This means the <code>call/2</code> can be split into two to look like what JavaScript etc 
+call <code>futures</code>:
 
+<code><pre>
+call(RegName, Request) ->
+  Ref = monitor(process, whereis(RegName)),
+  RegName ! {call, self(), Ref, Request},
+  receive
+    {reply, Ref, Reply} -> 
+      demonitor(Ref, [flush]), 
+      Reply;
+    {'DOWN', Ref, process, Pid, Info} ->
+      io:format("Pid ~p Info ~p", [Pid, Info]),
+      {error, server_down};
+    Unknown ->
+      io:format("Don't know what to do with ~p~n", [Unknown])
+  end.
+</pre></code>
+
+can be rewritten as:
+
+<code><pre>
+promise(RegName, Request) ->
+  Ref = monitor(process, whereis(RegName)),
+  RegName ! {call, self(), Ref, Request},
+  Ref.
+
+yield(Ref) ->
+  receive
+    {reply, Ref, Reply} -> 
+      demonitor(Ref, [flush]), 
+      Reply;
+    {'DOWN', Ref, process, Pid, Info} ->
+      io:format("Pid ~p Info ~p", [Pid, Info]),
+      {error, server_down};
+    Unknown ->
+      io:format("Don't know what to do with ~p~n", [Unknown])
+  end.
+</pre></code>
 
 <h1><a href="https://erlang.org/doc/reference_manual/errors.html">Error Handling</a></h1>
 
@@ -341,9 +381,9 @@ https://concuerror.com/
 
 https://dl.acm.org/doi/10.1145/1596550.1596574
 
-<h1><a href="https://erlang.org/doc/reference_manual/distributed.html">Distributed</a></h1>
+https://www.cs.kent.ac.uk/projects/wrangler/Wrangler/Home.html
 
-<code></code>
+<h1><a href="https://erlang.org/doc/reference_manual/distributed.html">Distributed</a></h1>
 
 <h1>OTP</h1>
 

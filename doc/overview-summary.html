@@ -231,26 +231,66 @@ which seems specifically designed to respond to timeouts and exit messages, but 
 <p><a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
 https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a></p>
 
-<p>Joe Armstrong provides the following example (he left function F out of the argument list for pmap,
-which I assume is a typo):</p>
+<p>A modification of Joe Armstrong's example (he left function F out of the argument list for pmap,
+which I assume is a typo), looks like this:</p>
 
 <p><code><pre>
-function pmap(F, L) -&gt;
+function pmap(F, Xs) -&gt;
   S = self(),
-  Pids = [do(S, F) || F &lt;- L],
+  Pids = [do(S, F, X) || X &lt;- Xs],
   [receive {Pid, Val} -&gt; Val end || Pid &lt;- Pids].
 
-do(Parent, F) -&gt;
-  spawn(fun() -&gt; Parent ! {self(), F()} end).
+do(Parent, F, X) -&gt;
+  spawn(fun() -&gt; Parent ! {self(), F(X)} end).
 </pre></code></p>
 
 <p>For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
 to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.</p>
 
+<h2>Futures</h2>
+
 <p>Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
-block doesn't need to be in the process that makes the initial call, but can be in a subsidiary function.</p>
+block doesn't need to be in the function that makes the initial call, but can be in a subsidiary function.</p>
 
+<p>This means the <code>call/2</code> can be split into two to look like what JavaScript etc 
+call <code>futures</code>:</p>
 
+<p><code><pre>
+call(RegName, Request) -&gt;
+  Ref = monitor(process, whereis(RegName)),
+  RegName ! {call, self(), Ref, Request},
+  receive
+    {reply, Ref, Reply} -&gt; 
+      demonitor(Ref, [flush]), 
+      Reply;
+    {'DOWN', Ref, process, Pid, Info} -&gt;
+      io:format("Pid ~p Info ~p", [Pid, Info]),
+      {error, server_down};
+    Unknown -&gt;
+      io:format("Don't know what to do with ~p~n", [Unknown])
+  end.
+</pre></code></p>
+
+<p>can be rewritten as:</p>
+
+<p><code><pre>
+promise(RegName, Request) -&gt;
+  Ref = monitor(process, whereis(RegName)),
+  RegName ! {call, self(), Ref, Request},
+  Ref.
+
+yield(Ref) -&gt;
+  receive
+    {reply, Ref, Reply} -&gt; 
+      demonitor(Ref, [flush]), 
+      Reply;
+    {'DOWN', Ref, process, Pid, Info} -&gt;
+      io:format("Pid ~p Info ~p", [Pid, Info]),
+      {error, server_down};
+    Unknown -&gt;
+      io:format("Don't know what to do with ~p~n", [Unknown])
+  end.
+</pre></code></p>
 
 <h1><a href="https://erlang.org/doc/reference_manual/errors.html">Error Handling</a></h1>
 
@@ -351,9 +391,9 @@ end
 
 <p>https://dl.acm.org/doi/10.1145/1596550.1596574</p>
 
-<h1><a href="https://erlang.org/doc/reference_manual/distributed.html">Distributed</a></h1>
+<p>https://www.cs.kent.ac.uk/projects/wrangler/Wrangler/Home.html</p>
 
-<p><code></code></p>
+<h1><a href="https://erlang.org/doc/reference_manual/distributed.html">Distributed</a></h1>
 
 <h1>OTP</h1>
 
