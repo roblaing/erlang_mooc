@@ -43,9 +43,6 @@ loop(Module, State0) ->
     Unknown -> % includes {'EXIT', Pid, Reason} when process_flag(trap_exit, true)
       {noreply, State1} = Module:handle_info(Unknown, State0),
       loop(Module, State1)
-    %after 5000 -> 
-    %  {noreply, State1} = Module:handle_info(5000, State0),
-    %  loop(Module, State1)
   end.  
 
 call(RegName, Request) ->
