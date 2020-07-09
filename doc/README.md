@@ -17,8 +17,11 @@ A process can simply give its return address as
 <a href="https://erlang.org/doc/man/erlang.html#self-0">self()</a>.
 
 An important difference between Erlang and the Elvis song is the <em>to address</em> won't tell you 
-<q><em>... address unknown. No such number, no such zone</em></q> by if there's a quarrel, 
+<q><em>... address unknown. No such number, no such zone</em></q> if there's a quarrel, 
 requiring digressions into monitors and timeouts.
+
+For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
+to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.
 
 <h1>Message idioms</h1>
 
@@ -260,9 +263,6 @@ function pmap(F, Xs) ->
 do(Parent, F, X) ->
   spawn(fun() -> Parent ! {self(), F(X)} end).
 </pre></code>
-
-For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
-to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.
 
 <h2>Futures</h2>
 
