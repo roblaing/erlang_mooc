@@ -45,7 +45,7 @@ Running <code>erl -pa ebin</code> lets you run the <em>repl</em> from the <em>my
 code in the ebin subdirectory in its path.
 
 <h2><a href="https://htdp.org/2020-5-6/Book/part_three.html#%28part._sec~3adesigning-with-abstraction%29">
-Designing with Abstractions</h2>
+Designing with Abstractions</a></h2>
 
 Erlang falls very much into the HTDP school of encouraging abstraction.
 
