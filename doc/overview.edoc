@@ -101,24 +101,12 @@ call(RegName, Request) ->
       {error, server_down};
     Unknown ->
       io:format("Don't know what to do with ~p~n", [Unknown])
+    after 5000 -> exit(timeout)
   end.
 </pre></code>
 
-and cast looks like:
-
-<code><pre>
-cast(RegName, Request) ->
-  RegName ! {cast, Request},
-  ok.
-</pre></code>
-
-It returns ok irrespective of whether the server received and handled the message or not.
-
-I haven't included an <code>after T -> </code> section in my call function since I'm still battling to understand this.
-
-The gen_server library includes 
-<a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a> as
-an alternative to call/2 if you want to include a timeout.
+By default, gen_server:call/2 exits with a timeout failure after five seconds. Longer (or shorter timeouts) can be set
+using <a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a>.
 
 After viewing 
 
@@ -133,6 +121,16 @@ call waiting for eternity for a reply from a dead server.
 If the server crashes before responding, call would receive a message like
 
 <code>{'DOWN',#Ref&lt;0.1606639298.2877292545.87648>,process,&lt;0.82.0>,normal}</code>
+
+My cast looks like:
+
+<code><pre>
+cast(RegName, Request) ->
+  RegName ! {cast, Request},
+  ok.
+</pre></code>
+
+It returns ok irrespective of whether the server received and handled the message or not.
 
 <h2>Behaving yourself</h2>
 

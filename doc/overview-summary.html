@@ -62,17 +62,20 @@ argument in handle_call is a tuple <code>{pid(), reference()}</code>, and the re
 <p>when no response from the server is required, simplified my <code>loop(State)</code> function to:</p>
 
 <p><code><pre>
-loop(State0) -&gt;
+loop(Module, State0) -&gt;
   receive
-    {call, From, Ref, Request} -&gt;
-      {reply, Reply, State1} = handle_call(Request, {From, Ref}, State0),
-      From ! {reply, Ref, Reply},
-      loop(State1);
+    {call, Pid, Ref, Request} -&gt;
+      {reply, Reply, State1} = Module:handle_call(Request, {Pid, Ref}, State0),
+      Pid ! {reply, Ref, Reply},
+      loop(Module, State1);
     {cast, Request} -&gt; 
-      {noreply, State1} = handle_cast(Request, State0),
-      loop(State1);
-    stop -&gt; terminate(normal, State0)
-  end.
+      {noreply, State1} = Module:handle_cast(Request, State0),
+      loop(Module, State1);
+    stop -&gt; Module:terminate(normal, State0);
+    Unknown -&gt; % includes {'EXIT', Pid, Reason} when process_flag(trap_exit, true) has been set in Module:init(Init).
+      {noreply, State1} = Module:handle_info(Unknown, State0),
+      loop(Module, State1)
+  end.  
 </pre></code></p>
 
 <p>This is mainly for educational purposes since OTP applications have builtin loop functions. Similarly, 
@@ -108,24 +111,12 @@ call(RegName, Request) -&gt;
       {error, server_down};
     Unknown -&gt;
       io:format("Don't know what to do with ~p~n", [Unknown])
+    after 5000 -&gt; exit(timeout)
   end.
 </pre></code></p>
 
-<p>and cast looks like:</p>
-
-<p><code><pre>
-cast(RegName, Request) -&gt;
-  RegName ! {cast, Request},
-  ok.
-</pre></code></p>
-
-<p>It returns ok irrespective of whether the server received and handled the message or not.</p>
-
-<p>I haven't included an <code>after T -&gt; </code> section in my call function since I'm still battling to understand this.</p>
-
-<p>The gen_server library includes 
-<a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -&gt; Reply</a> as
-an alternative to call/2 if you want to include a timeout.</p>
+<p>By default, gen_server:call/2 exits with a timeout failure after five seconds. Longer (or shorter timeouts) can be set
+using <a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -&gt; Reply</a>.</p>
 
 <p>After viewing </p>
 
@@ -140,6 +131,16 @@ call waiting for eternity for a reply from a dead server.</p>
 <p>If the server crashes before responding, call would receive a message like</p>
 
 <p><code>{'DOWN',#Ref&lt;0.1606639298.2877292545.87648&gt;,process,&lt;0.82.0&gt;,normal}</code></p>
+
+<p>My cast looks like:</p>
+
+<p><code><pre>
+cast(RegName, Request) -&gt;
+  RegName ! {cast, Request},
+  ok.
+</pre></code></p>
+
+<p>It returns ok irrespective of whether the server received and handled the message or not.</p>
 
 <h2>Behaving yourself</h2>
 
@@ -222,7 +223,32 @@ handle_cast({inject, Freqs}, {Free, Allocated}) -&gt;
 
 <p>Besides handle_call and handle_case, there's
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_info-2">Module:handle_info(Info, State) -&gt; Result</a>
-which seems specifically designed to respond to timeouts and exit messages, but I haven't figure it out yet.</p>
+which seems specifically designed to respond to timeouts and exit messages.</p>
+
+<p>To trap exits with gen_server, I modified the client init/1 function to:</p>
+
+<p><code><pre>
+init(Init) -&gt;
+  process_flag(trap_exit, true),
+  {ok, Init}.
+</pre></code></p>
+
+<p>and my handle_info looks like:</p>
+
+<p><code><pre>
+handle_info({'EXIT', Pid, Reason}, {Free, Allocated}) -&gt;
+  io:format("~p exited: ~p~n", [Pid, Reason]),
+  case lists:keyfind(Pid, 2, Allocated) of
+    {Freq, Pid} -&gt; 
+      {noreply, {[Freq|Free], proplists:delete(Freq, Allocated)}};
+    false       -&gt; 
+      {noreply, {Free, Allocated}}
+  end;
+
+handle_info(Info, State) -&gt;
+  io:format("Received unknown message ~p~n", [Info]),
+  {noreply, State}.
+</pre></code></p>
 
 <h2>Parallel Map</h2>
 

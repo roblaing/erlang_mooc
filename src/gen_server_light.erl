@@ -57,6 +57,7 @@ call(RegName, Request) ->
       {error, server_down};
     Unknown ->
       io:format("Don't know what to do with ~p~n", [Unknown])
+    after 5000 -> exit(timeout)
   end.
 
 %% @doc Asynchronous, does not need a reply from the server.
