@@ -52,17 +52,20 @@ or alternatively sending
 when no response from the server is required, simplified my <code>loop(State)</code> function to:
 
 <code><pre>
-loop(State0) ->
+loop(Module, State0) ->
   receive
-    {call, From, Ref, Request} ->
-      {reply, Reply, State1} = handle_call(Request, {From, Ref}, State0),
-      From ! {reply, Ref, Reply},
-      loop(State1);
+    {call, Pid, Ref, Request} ->
+      {reply, Reply, State1} = Module:handle_call(Request, {Pid, Ref}, State0),
+      Pid ! {reply, Ref, Reply},
+      loop(Module, State1);
     {cast, Request} -> 
-      {noreply, State1} = handle_cast(Request, State0),
-      loop(State1);
-    stop -> terminate(normal, State0)
-  end.
+      {noreply, State1} = Module:handle_cast(Request, State0),
+      loop(Module, State1);
+    stop -> Module:terminate(normal, State0);
+    Unknown -> % includes {'EXIT', Pid, Reason} when process_flag(trap_exit, true) has been set in Module:init(Init).
+      {noreply, State1} = Module:handle_info(Unknown, State0),
+      loop(Module, State1)
+  end.  
 </pre></code>
 
 This is mainly for educational purposes since OTP applications have builtin loop functions. Similarly, 
@@ -212,7 +215,32 @@ handle_cast({inject, Freqs}, {Free, Allocated}) ->
 
 Besides handle_call and handle_case, there's
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_info-2">Module:handle_info(Info, State) -> Result</a>
-which seems specifically designed to respond to timeouts and exit messages, but I haven't figure it out yet.
+which seems specifically designed to respond to timeouts and exit messages.
+
+To trap exits with gen_server, I modified the client init/1 function to:
+
+<code><pre>
+init(Init) ->
+  process_flag(trap_exit, true),
+  {ok, Init}.
+</pre></code>
+
+and my handle_info looks like:
+
+<code><pre>
+handle_info({'EXIT', Pid, Reason}, {Free, Allocated}) ->
+  io:format("~p exited: ~p~n", [Pid, Reason]),
+  case lists:keyfind(Pid, 2, Allocated) of
+    {Freq, Pid} -> 
+      {noreply, {[Freq|Free], proplists:delete(Freq, Allocated)}};
+    false       -> 
+      {noreply, {Free, Allocated}}
+  end;
+
+handle_info(Info, State) ->
+  io:format("Received unknown message ~p~n", [Info]),
+  {noreply, State}.
+</pre></code>
 
 <h2>Parallel Map</h2>
 
