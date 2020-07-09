@@ -221,17 +221,17 @@ In this youtube video
 <a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
 https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a>
 
-Joe Armstrong provides the following example (he left function F out of the argument list for pmap,
-which I assume is a typo):
+A modification of Joe Armstrong's example (he left function F out of the argument list for pmap,
+which I assume is a typo), looks like this:
 
 <code><pre>
-function pmap(F, L) ->
+function pmap(F, Xs) ->
   S = self(),
-  Pids = [do(S, F) || F &lt;- L],
+  Pids = [do(S, F, X) || X &lt;- Xs],
   [receive {Pid, Val} -> Val end || Pid &lt;- Pids].
 
-do(Parent, F) ->
-  spawn(fun() -> Parent ! {self(), F()} end).
+do(Parent, F, X) ->
+  spawn(fun() -> Parent ! {self(), F(X)} end).
 </pre></code>
 
 For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
