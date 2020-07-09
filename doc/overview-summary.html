@@ -252,8 +252,7 @@ to remain alive for repeated messages, it needs to be written as a <em>listening
 <p>Another tricky concept is the <a href="https://erlang.org/doc/reference_manual/expressions.html#receive">receive</a> 
 block doesn't need to be in the function that makes the initial call, but can be in a subsidiary function.</p>
 
-<p>This means the <code>call/2</code> can be split into two to look like what JavaScript etc 
-call <code>futures</code>:</p>
+<p>This means <code>call/2</code></p> 
 
 <p><code><pre>
 call(RegName, Request) -&gt;
@@ -271,7 +270,7 @@ call(RegName, Request) -&gt;
   end.
 </pre></code></p>
 
-<p>can be rewritten as:</p>
+<p>can be split into two to look like what JavaScript etc call <code>futures</code>:</p>
 
 <p><code><pre>
 promise(RegName, Request) -&gt;
