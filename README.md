@@ -62,7 +62,7 @@ comfortable with a keyboard who can't read his own handwriting, I find working w
 The key point is, the old cliché "The sooner you start to code, the longer the program will take" stands. As IBM liked to tell
 my dad via a paper calendar, "THINK".
 
-<h2>2. Signature, Purpose Statement, Header</h2>
+<h3>2. Signature, Purpose Statement, Header</h3>
 
 A reason the HTDP recipe bundles these three together is they need to be done concurrently. Since the guts of a program
 is likely to change often as you get more experienced with a given language &mdash; with your code hopefully getting
