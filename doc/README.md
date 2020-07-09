@@ -221,8 +221,8 @@ In this youtube video
 <a href="https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2">
 https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLKjodnTIn&amp;index=2</a>
 
-A modification of Joe Armstrong's example (he left function F out of the argument list for pmap,
-which I assume is a typo), looks like this:
+Joe Armstrong's provides an example which I've modified since he left function F out of the argument list for pmap,
+which I assume is a typo, to look like this:
 
 <code><pre>
 function pmap(F, Xs) ->
