@@ -50,7 +50,7 @@ loop(Module, State0) ->
 -spec call(RegName::atom(), Request::term()) -> Reply::term().
 call(RegName, Request) ->
   case whereis(RegName) of
-    undefined -> {error, server_down};
+    undefined -> {error, server_down}; % Needed for when server not running in first place.
     Pid ->    
       Ref = monitor(process, Pid),
       RegName ! {call, self(), Ref, Request},
