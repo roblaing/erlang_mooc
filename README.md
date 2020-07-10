@@ -1,7 +1,7 @@
 <h1>Erlang Mooc Notes</h1>
 
 This is space for my assignments and notes for two online courses on Erlang offered by University of Kent professor Simon Thompson,
-who is also co-author of O'Reilly's Erlang Programming book which the courses complement nicely.
+who is also co-author of <a href="https://www.oreilly.com/library/view/erlang-programming/9780596803940/">O'Reilly's Erlang Programming book</a> which the courses complement nicely.
 
 <ol>
   <li><a href="https://www.futurelearn.com/courses/functional-programming-erlang">Functional Programming in Erlang</a></li>
