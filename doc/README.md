@@ -261,14 +261,14 @@ linking to a dead process.
 A node can kill itself with <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -> no_return()</a>, and nodes
 can be killed externally by <a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a>
 
-Two <em>exit reasons</em>, <code>normal</code> and <code>kill</code>, behave differently from <code>timeout</code>, 
+A gotcha is two <em>exit reasons</em>, <code>normal</code> and <code>kill</code>, behave differently from <code>timeout</code>, 
   <code>shutdown</code> or whatever.
 
 <dl>
   <dt>timeout, shutdown, ... whatever</dt><dd>If the linked process has
     <a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>,
     it will receive a message <code>{'EXIT', FromPid, Reason}</code>, otherwise it will call
-    <code>exit(Reason)</code> for processes linked to it in turn to either trap or pass on to their links.</dd>
+    <code>exit(Reason)</code> for processes linked to it in turn to either trap, or exit and pass on to their links.</dd>
   <dt>kill</dt><dd>This is <em>untrappable</em>, meaning <code>kill</code> causes directly linked nodes to die even if they 
     have trap_exit set to true. Indirectly linked nodes trapping exits receive <code>{'EXIT', FromPid, killed}</code> 
     (note <em>kill</em> is rewritten as <em>killed</em>) so that they don't necessarily die.</dd>
@@ -297,19 +297,19 @@ end
 </pre></code>
 
 <dl>
-  <dd><a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a> or 
+  <dt><a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a> or 
       <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -> no_return()</a>
-  </dd>
-  <dt>Used with <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -> true</a>
+  </dt>
+  <dd>Used with <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -> true</a>
       and <a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>
       to convert exit signals into <code>{'ERROR', From, Reason}</code> message.
-  </dt>
-  <dd><a href="https://erlang.org/doc/man/erlang.html#throw-1">throw(Any) -> no_return()</a></dd>
-  <dt>Used with <a href="https://erlang.org/doc/reference_manual/expressions.html#catch-and-throw">catch</a> expressions
+  </dd>
+  <dt><a href="https://erlang.org/doc/man/erlang.html#throw-1">throw(Any) -> no_return()</a></dt>
+  <dd>Used with <a href="https://erlang.org/doc/reference_manual/expressions.html#catch-and-throw">catch</a> expressions
       which can be enhanced with <a href="https://erlang.org/doc/reference_manual/expressions.html#try">try</a>
-  </dt>
-  <dd><a href="https://erlang.org/doc/man/erlang.html#error-1">error(Reason) -> no_return()</a></dd>
-  <dt>Includes stack trace for debugging</dt>
+  </dd>
+  <dt><a href="https://erlang.org/doc/man/erlang.html#error-1">error(Reason) -> no_return()</a></dt>
+  <dd>Includes stack trace for debugging</dd>
 </dl>
 
 <code><pre>
