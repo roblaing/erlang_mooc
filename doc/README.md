@@ -94,18 +94,22 @@ My version of <code>call/2</code> looks like:
 
 <code><pre>
 call(RegName, Request) ->
-  Ref = monitor(process, whereis(RegName)),
-  RegName ! {call, self(), Ref, Request},
-  receive
-    {reply, Ref, Reply} -> 
-      demonitor(Ref, [flush]), 
-      Reply;
-    {'DOWN', Ref, process, Pid, Info} ->
-      io:format("Pid ~p Info ~p", [Pid, Info]),
-      {error, server_down};
-    Unknown ->
-      io:format("Don't know what to do with ~p~n", [Unknown])
-    after 5000 -> exit(timeout)
+  case whereis(RegName) of
+    undefined -> {error, server_down}; % Needed for when server is not running in first place.
+    Pid ->    
+      Ref = monitor(process, Pid),
+      RegName ! {call, self(), Ref, Request},
+      receive
+        {reply, Ref, Reply} -> 
+          demonitor(Ref, [flush]), 
+          Reply;
+        {'DOWN', Ref, process, Pid, Info} -> % Server crashed after message sent.
+          io:format("Pid ~p Info ~p", [Pid, Info]),
+          {error, server_down};
+        Unknown ->
+          io:format("Don't know what to do with ~p~n", [Unknown])
+        after 5000 -> exit(timeout)
+      end
   end.
 </pre></code>
 

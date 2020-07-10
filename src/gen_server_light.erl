@@ -58,7 +58,7 @@ call(RegName, Request) ->
         {reply, Ref, Reply} -> 
           demonitor(Ref, [flush]), 
           Reply;
-        {'DOWN', Ref, process, Pid, Info} ->
+        {'DOWN', Ref, process, Pid, Info} -> % Server crashed after message sent.
           io:format("Pid ~p Info ~p", [Pid, Info]),
           {error, server_down};
         Unknown ->

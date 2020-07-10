@@ -104,18 +104,22 @@ I'll get to shortly.</p>
 
 <p><code><pre>
 call(RegName, Request) -&gt;
-  Ref = monitor(process, whereis(RegName)),
-  RegName ! {call, self(), Ref, Request},
-  receive
-    {reply, Ref, Reply} -&gt; 
-      demonitor(Ref, [flush]), 
-      Reply;
-    {'DOWN', Ref, process, Pid, Info} -&gt;
-      io:format("Pid ~p Info ~p", [Pid, Info]),
-      {error, server_down};
-    Unknown -&gt;
-      io:format("Don't know what to do with ~p~n", [Unknown])
-    after 5000 -&gt; exit(timeout)
+  case whereis(RegName) of
+    undefined -&gt; {error, server_down}; % Needed for when server is not running in first place.
+    Pid -&gt;    
+      Ref = monitor(process, Pid),
+      RegName ! {call, self(), Ref, Request},
+      receive
+        {reply, Ref, Reply} -&gt; 
+          demonitor(Ref, [flush]), 
+          Reply;
+        {'DOWN', Ref, process, Pid, Info} -&gt; % Server crashed after message sent.
+          io:format("Pid ~p Info ~p", [Pid, Info]),
+          {error, server_down};
+        Unknown -&gt;
+          io:format("Don't know what to do with ~p~n", [Unknown])
+        after 5000 -&gt; exit(timeout)
+      end
   end.
 </pre></code></p>
 
