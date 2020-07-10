@@ -245,6 +245,90 @@ handle_info(Info, State) ->
   {noreply, State}.
 </pre></code>
 
+<h1><a href="https://erlang.org/doc/reference_manual/errors.html">Error Handling</a></h1>
+
+Erlang broadly has two ways of handling crashes: exceptions suited for traditional, sequential functions using 
+<code>try ... catch ... end</code>, and exit signals for concurrent processes with <code>repeat ... end</code>.
+
+<h2><a href="https://erlang.org/doc/reference_manual/processes.html#errors">Error propogation in a network of nodes</a></h2>
+
+The key BIFs here are <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -> true</a> which links the
+calling process to another, or 
+<a href="https://erlang.org/doc/man/erlang.html#spawn_link-3">spawn_link(Module, Function, Args) -> pid()</a>
+which is safer when calling spawn and then link since it does both as an atomic operation, avoiding the possibility of
+linking to a dead process.
+
+A node can kill itself with <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -> no_return()</a>, and nodes
+can be killed externally by <a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a>
+
+Two <em>exit reasons</em>, <code>normal</code> and <code>kill</code>, behave differently from <code>timeout</code>, 
+  <code>shutdown</code> or whatever.
+
+<dl>
+  <dt>timeout, shutdown, ... whatever</dt><dd>If the linked process has
+    <a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>,
+    it will receive a message <code>{'EXIT', FromPid, Reason}</code>, otherwise it will call
+    <code>exit(Reason)</code> for processes linked to it in turn to either trap or pass on to their links.</dd>
+  <dt>kill</dt><dd>This is <em>untrappable</em>, meaning <code>kill</code> causes directly linked nodes to die even if they 
+    have trap_exit set to true. Indirectly linked nodes trapping exits receive <code>{'EXIT', FromPid, killed}</code> 
+    (note <em>kill</em> is rewritten as <em>killed</em>) so that they don't necessarily die.</dd>
+  <dt>normal</dt><dd>Only <em>abnormal</em>, ie Reason is anything but <code>normal</code>, are sent to linked nodes. 
+    So calling <code>exit(Pid, normal)</code> so no message <code>{'EXIT', FromPid, normal}</code> would be received
+    by a supervisor.</dd>
+</dl>
+
+<h2>Sequential exception handling</h2>
+
+Usually, errors are handled by sending either <code>{ok, Value}</code> or <code>{error, Reason}</code> messages.
+
+When something unforeseen happens, a system <em>raises and exception</em>, commonly known as crashing.
+
+Only use these to exit deeply nested recursion as in parsers.
+
+There are three types of exceptions, each of which creates a different Class for catch:
+
+<code><pre>
+try Expr
+catch
+    throw:Term -> Term;
+    exit:Reason -> {'EXIT', Reason}
+    error:Reason:Stk -> {'EXIT', {Reason, Stk}}
+end
+</pre></code>
+
+<dl>
+  <dd><a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a> or 
+      <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -> no_return()</a>
+  </dd>
+  <dt>Used with <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -> true</a>
+      and <a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>
+      to convert exit signals into <code>{'ERROR', From, Reason}</code> message.
+  </dt>
+  <dd><a href="https://erlang.org/doc/man/erlang.html#throw-1">throw(Any) -> no_return()</a></dd>
+  <dt>Used with <a href="https://erlang.org/doc/reference_manual/expressions.html#catch-and-throw">catch</a> expressions
+      which can be enhanced with <a href="https://erlang.org/doc/reference_manual/expressions.html#try">try</a>
+  </dt>
+  <dd><a href="https://erlang.org/doc/man/erlang.html#error-1">error(Reason) -> no_return()</a></dd>
+  <dt>Includes stack trace for debugging</dt>
+</dl>
+
+<code><pre>
+eval(Env, {div, Num, Denom}) ->
+  N = eval(Env, Num),
+  D = eval(Env, Denom),
+  case D of
+    0   -> throw(div_by_zero);
+    _NZ -> N div D
+  end;
+
+try eval(Env, Exp) of
+  Res -> Res
+catch
+  throw:div_by_zero -> 0
+end
+</pre></code>
+
+
 <h2>Parallel Map</h2>
 
 In this youtube video
@@ -307,94 +391,6 @@ yield(Ref) ->
     Unknown ->
       io:format("Don't know what to do with ~p~n", [Unknown])
   end.
-</pre></code>
-
-<h1><a href="https://erlang.org/doc/reference_manual/errors.html">Error Handling</a></h1>
-
-This is a fairly complex topic, introducing several new primitives.
-
-Erlang broadly has two ways of handling crashes: one suited for traditional, sequential functions using 
-<code>try ... catch ... end</code> and another for concurrent processes with <code>repeat ... end</code>.
-
-<h2><a href="https://erlang.org/doc/reference_manual/processes.html#errors">Error propogation in a network of nodes</a></h2>
-
-The key BIFs here are <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -> true</a> which links the
-calling process to another, or 
-<a href="https://erlang.org/doc/man/erlang.html#spawn_link-3">spawn_link(Module, Function, Args) -> pid()</a>
-which is safer when calling spawn and then link since it does both as an atomic operation, avoiding the possibility of
-linking to a dead process.
-
-If the process spawning a child process is its <em>supervisor</em>, it needs to set
-<a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>.
-
-Otherwise, if <em>trap_exit</em> is left at the default <em>false</em>, linked processes are designed to fall like dominoes,
-unless the exit reason is <em>normal</em>.
-
-A node can kill itself with <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -> no_return()</a>, and nodes
-can be killed externally by <a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a>
-
-If the supervisor node has <em>trap_exit</em> set to <em>true</em>, instead of topling over it needs to handle a message
-<code>{'EXIT', FromPid, Reason}</code>.
-
-Two <em>exit reasons</em> behave differently from <em>timeout</em>, <em>shutdown</em> or whatever.
-
-<dl>
-  <dt>normal</dt><dd>Only <em>abnormal</em>, ie Reason is anything but <em>normal</em>, are sent to linked nodes. 
-    So calling <code>exit(Pid, normal)</code> will not send an exit signal to linked nodes.</dd>
-  <dt>kill</dt><dd>These are <em>untrappable</em> which means they kill linked nodes even if they they 
-    have trap_exit set to true. The linked nodes modify <em>kill</em> to <code>exit(killed)</code> so that 
-    nodes not directly linked to the node sending the kill signal don't automatically die.</dd>
-</dl>
-
-<h2>Exceptions</h2>
-
-Usually, errors are handled by sending either <code>{ok, Value}</code> or <code>{error, Reason}</code> messages.
-
-When something unforeseen happens, a system <em>raises and exception</em>, commonly known as crashing.
-
-Only use these to exit deeply nested recursion as in parsers.
-
-There are three types of exceptions, each of which creates a different Class for catch:
-
-<code><pre>
-try Expr
-catch
-    throw:Term -> Term;
-    exit:Reason -> {'EXIT', Reason}
-    error:Reason:Stk -> {'EXIT', {Reason, Stk}}
-end
-</pre></code>
-
-<dl>
-  <dd><a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a> or 
-      <a href="https://erlang.org/doc/man/erlang.html#exit-1">exit(Reason) -> no_return()</a>
-  </dd>
-  <dt>Used with <a href="https://erlang.org/doc/man/erlang.html#link-1">link(PidOrPort) -> true</a>
-      and <a href="https://erlang.org/doc/man/erlang.html#process_flag-2">process_flag(trap_exit, true)</a>
-      to convert exit signals into <code>{'ERROR', From, Reason}</code> message.
-  </dt>
-  <dd><a href="https://erlang.org/doc/man/erlang.html#throw-1">throw(Any) -> no_return()</a></dd>
-  <dt>Used with <a href="https://erlang.org/doc/reference_manual/expressions.html#catch-and-throw">catch</a> expressions
-      which can be enhanced with <a href="https://erlang.org/doc/reference_manual/expressions.html#try">try</a>
-  </dt>
-  <dd><a href="https://erlang.org/doc/man/erlang.html#error-1">error(Reason) -> no_return()</a></dd>
-  <dt>Includes stack trace for debugging</dt>
-</dl>
-
-<code><pre>
-eval(Env, {div, Num, Denom}) ->
-  N = eval(Env, Num),
-  D = eval(Env, Denom),
-  case D of
-    0   -> throw(div_by_zero);
-    _NZ -> N div D
-  end;
-
-try eval(Env, Exp) of
-  Res -> Res
-catch
-  throw:div_by_zero -> 0
-end
 </pre></code>
 
 <h1>Common problems</h1>
