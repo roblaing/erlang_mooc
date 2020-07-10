@@ -282,9 +282,9 @@ can be killed externally by <a href="https://erlang.org/doc/man/erlang.html#exit
   <dt>kill</dt><dd>This is <em>untrappable</em>, meaning <code>kill</code> causes directly linked nodes to die even if they 
     have trap_exit set to true. Indirectly linked nodes trapping exits receive <code>{'EXIT', FromPid, killed}</code> 
     (note <em>kill</em> is rewritten as <em>killed</em>) so that they don't necessarily die.</dd>
-  <dt>normal</dt><dd>Only <em>abnormal</em>, ie Reason is anything but <code>normal</code>, are sent to linked nodes. 
-    So calling <code>exit(Pid, normal)</code> so no message <code>{'EXIT', FromPid, normal}</code> would be received
-    by a supervisor.</dd>
+  <dt>normal</dt><dd>Only <em>abnormal</em>, ie Reason is anything but <code>normal</code>, cause linked nodes to call
+    <code>exit(Pid, Reason)</code> and pass on. A supervisor would receive a <code>{'EXIT', FromPid, normal}</code>
+    message.</dd>
 </dl>
 
 <h2>Sequential exception handling</h2>
