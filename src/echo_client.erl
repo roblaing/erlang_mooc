@@ -9,9 +9,10 @@
         , stop/0
         , handle_call/3
         , handle_cast/2
+        , handle_info/2
         ]).
--define(SERVER, gen_server).
-% -define(SERVER, gen_server_light).
+% -define(SERVER, gen_server).
+-define(SERVER, gen_server_light).
 -behaviour(?SERVER).
 
 start_link() ->
@@ -43,4 +44,8 @@ handle_call({echo, Msg}, _From, N) ->
 -spec handle_cast(Request::term(), State::term()) -> Result::{noreply, NewState::term()}.
 handle_cast({reset, X}, _N) ->
   {noreply, X}.
+
+handle_info(Info, State) ->
+  io:format("Received unknown message ~p~n", [Info]),
+  {noreply, State}.
 

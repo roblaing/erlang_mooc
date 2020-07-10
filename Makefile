@@ -1,5 +1,5 @@
 # A simple Makefile, must use tabs, not spaces, to indent
-ERLC_FLAGS=
+ERLC_FLAGS=+debug_info
 APP_NAME=futurelearn
 SOURCES=$(wildcard src/*.erl)
 HEADERS=$(wildcard include/*.hrl)

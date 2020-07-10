@@ -13,7 +13,7 @@
 -callback handle_cast(Request::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback handle_info(Info::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback init(Args::term()) -> Result::{ok, State::term()}.
--callback terminate(Reason::term(), State::term()) -> none(). 
+-callback terminate(Reason::term(), State::term()) -> ok. 
 
 -spec start_link({local, RegName::atom()}, Module::module(), Arg::term(), Options::[term()]) -> {ok, pid()}.
 %% @doc The original documentation says Args, leading to a common mistake of thinking there are surrounding list brackets.
@@ -22,10 +22,12 @@ start_link({local, RegName}, Module, Arg, _Options) ->
   register(RegName, Pid),
   {ok, Pid}.
 
-stop(Name) -> 
-  Name ! stop,
+-spec stop(RegName::atom()) -> stopped.
+stop(RegName) -> 
+  RegName ! stop,
   stopped.
 
+-spec init(Module::module(), Arg::term()) -> stopped.
 init(Module, Arg) ->
   {ok, Init} = Module:init(Arg),
   loop(Module, Init).
@@ -45,6 +47,7 @@ loop(Module, State0) ->
       loop(Module, State1)
   end.  
 
+-spec call(RegName::atom(), Request::term()) -> Reply::term().
 call(RegName, Request) ->
   Ref = monitor(process, whereis(RegName)),
   RegName ! {call, self(), Ref, Request},
@@ -60,6 +63,7 @@ call(RegName, Request) ->
     after 5000 -> exit(timeout)
   end.
 
+-spec cast(RegName::atom(), Request::term()) -> ok.
 %% @doc Asynchronous, does not need a reply from the server.
 cast(RegName, Request) ->
   RegName ! {cast, Request},

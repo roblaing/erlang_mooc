@@ -346,10 +346,15 @@ can be killed externally by <a href="https://erlang.org/doc/man/erlang.html#exit
 <p>If the supervisor node has <em>trap_exit</em> set to <em>true</em>, instead of topling over it needs to handle a message
 <code>{'EXIT', FromPid, Reason}</code>.</p>
 
-<p>Reason can be any atom, but there's a little subtlety about <code>exit(kill)</code>: the linked process receives 
-<code>{'EXIT', FromPid, killed}</code></p>
+<p>Two <em>exit reasons</em> behave differently from <em>timeout</em>, <em>shutdown</em> or whatever.</p>
 
-<p>This doesn't seem to apply other exit reasons like <em>normal</em> etc.</p>
+<dl>
+  <dt>normal</dt><dd>Only <em>abnormal</em>, ie Reason is anything but <em>normal</em>, are sent to linked nodes. 
+    So calling <code>exit(Pid, normal)</code> will not send an exit signal to linked nodes.</dd>
+  <dt>kill</dt><dd>These are <em>untrappable</em> which means they kill linked nodes even if they they 
+    have trap_exit set to true. The linked nodes modify <em>kill</em> to <code>exit(killed)</code> so that 
+    nodes not directly linked to the node sending the kill signal don't automatically die.</dd>
+</dl>
 
 <h2>Exceptions</h2>
 

@@ -48,9 +48,11 @@ stop() ->
 %% @doc Optional for -behaviour(gen_server), should return none(), but not sure how to do that.
 terminate(Reason, {_, []}) -> 
   io:format("~p~n", [Reason]);
-terminate(Reason, {Free, [{_, Pid}|Allocated]}) ->
+terminate(Reason, {Free, [{_Freq, Pid}|Allocated]}) ->
+  % io:format("Terminating {~p, ~p}~n", [Freq, Pid]),
+  % exit(Pid, shutdown), % This works for freqclient:random_test(1000). because Pid is not the shell.
   unlink(Pid), 
-  exit(Pid, normal),
+  exit(Pid, normal), % must be normal to avoid crash in test() because Pid is the shell.
   terminate(Reason, {Free, Allocated}).
 
 -spec allocate() -> {ok, Freq::integer()} | {error, no_frequency}.
