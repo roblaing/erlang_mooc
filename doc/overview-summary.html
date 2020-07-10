@@ -12,7 +12,7 @@
 
 <h1>Pid Bang</h1>
 
-<p>Thinking in terms of sending and receiving messages between listening loops rather than return values from functions with 
+<p>Thinking in terms of processes sending and receiving messages rather than return values from functions with 
 arguments I found a bit tricky.</p>
 
 <p>Joe Armstrong in this youtube video</p>
@@ -29,6 +29,9 @@ A process can simply give its return address as
 <p>An important difference between Erlang and the Elvis song is the <em>to address</em> won't tell you 
 <q><em>... address unknown. No such number, no such zone</em></q> if there's a quarrel, 
 requiring digressions into monitors and timeouts.</p>
+
+<p>For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
+to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.</p>
 
 <h1>Message idioms</h1>
 
@@ -116,7 +119,7 @@ call(RegName, Request) -&gt;
   end.
 </pre></code></p>
 
-<p>By default, gen_server:call/2 exits with a timeout failure after five seconds. Longer (or shorter timeouts) can be set
+<p>By default, gen_server:call/2 exits with a timeout failure after five seconds. Longer (or shorter) timeouts can be set
 using <a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -&gt; Reply</a>.</p>
 
 <p>After viewing </p>
@@ -154,8 +157,9 @@ behaviour_info/1 and then write something like:</p>
 
 <p><code><pre>
 behaviour_info(callbacks) -&gt;
-  [ {handle_call, 2}
+  [ {handle_call, 3}
   , {handle_cast, 2}
+  , {handle_info, 2}
   , {init, 1}
   , {terminate, 1}
   ];
@@ -262,7 +266,7 @@ https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLK
 which I assume is a typo, to look like this:</p>
 
 <p><code><pre>
-function pmap(F, Xs) -&gt;
+pmap(F, Xs) -&gt;
   S = self(),
   Pids = [do(S, F, X) || X &lt;- Xs],
   [receive {Pid, Val} -&gt; Val end || Pid &lt;- Pids].
@@ -270,9 +274,6 @@ function pmap(F, Xs) -&gt;
 do(Parent, F, X) -&gt;
   spawn(fun() -&gt; Parent ! {self(), F(X)} end).
 </pre></code></p>
-
-<p>For a process created by <a href="https://erlang.org/doc/man/erlang.html#spawn-3">spawn(Module, Function, Args)</a>
-to remain alive for repeated messages, it needs to be written as a <em>listening loop</em> that calls itself after handling a message.</p>
 
 <h2>Futures</h2>
 
@@ -322,8 +323,8 @@ yield(Ref) -&gt;
 
 <p>This is a fairly complex topic, introducing several new primitives.</p>
 
-<p>Erlang broadly has two ways of handling crashes: one suited for when the caller is a message handler with repeat ... end,
-and another for traditional function calls using try ... catch ... end.</p>
+<p>Erlang broadly has two ways of handling crashes: one suited for traditional, sequential functions using 
+<code>try ... catch ... end</code> and another for concurrent processes with <code>repeat ... end</code>.</p>
 
 <h2><a href="https://erlang.org/doc/reference_manual/processes.html#errors">Error propogation in a network of nodes</a></h2>
 
@@ -353,6 +354,8 @@ can be killed externally by <a href="https://erlang.org/doc/man/erlang.html#exit
 <h2>Exceptions</h2>
 
 <p>Usually, errors are handled by sending either <code>{ok, Value}</code> or <code>{error, Reason}</code> messages.</p>
+
+<p>When something unforeseen happens, a system <em>raises and exception</em>, commonly known as crashing.</p>
 
 <p>Only use these to exit deeply nested recursion as in parsers.</p>
 

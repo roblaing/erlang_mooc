@@ -2,7 +2,7 @@
 
 <h1>Pid Bang</h1>
 
-Thinking in terms of sending and receiving messages between listening loops rather than return values from functions with 
+Thinking in terms of processes sending and receiving messages rather than return values from functions with 
 arguments I found a bit tricky.
 
 Joe Armstrong in this youtube video
@@ -109,7 +109,7 @@ call(RegName, Request) ->
   end.
 </pre></code>
 
-By default, gen_server:call/2 exits with a timeout failure after five seconds. Longer (or shorter timeouts) can be set
+By default, gen_server:call/2 exits with a timeout failure after five seconds. Longer (or shorter) timeouts can be set
 using <a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a>.
 
 After viewing 
@@ -147,8 +147,9 @@ behaviour_info/1 and then write something like:
 
 <code><pre>
 behaviour_info(callbacks) ->
-  [ {handle_call, 2}
+  [ {handle_call, 3}
   , {handle_cast, 2}
+  , {handle_info, 2}
   , {init, 1}
   , {terminate, 1}
   ];
@@ -255,7 +256,7 @@ Joe Armstrong's provides an example which I've modified since he left function F
 which I assume is a typo, to look like this:
 
 <code><pre>
-function pmap(F, Xs) ->
+pmap(F, Xs) ->
   S = self(),
   Pids = [do(S, F, X) || X &lt;- Xs],
   [receive {Pid, Val} -> Val end || Pid &lt;- Pids].
@@ -312,8 +313,8 @@ yield(Ref) ->
 
 This is a fairly complex topic, introducing several new primitives.
 
-Erlang broadly has two ways of handling crashes: one suited for when the caller is a message handler with repeat ... end,
-and another for traditional function calls using try ... catch ... end.
+Erlang broadly has two ways of handling crashes: one suited for traditional, sequential functions using 
+<code>try ... catch ... end</code> and another for concurrent processes with <code>repeat ... end</code>.
 
 <h2><a href="https://erlang.org/doc/reference_manual/processes.html#errors">Error propogation in a network of nodes</a></h2>
 
@@ -343,6 +344,8 @@ This doesn't seem to apply other exit reasons like <em>normal</em> etc.
 <h2>Exceptions</h2>
 
 Usually, errors are handled by sending either <code>{ok, Value}</code> or <code>{error, Reason}</code> messages.
+
+When something unforeseen happens, a system <em>raises and exception</em>, commonly known as crashing.
 
 Only use these to exit deeply nested recursion as in parsers.
 

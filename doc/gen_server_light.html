@@ -27,17 +27,17 @@
 
 <h3 class="function"><a name="call-2">call/2</a></h3>
 <div class="spec">
-<p><tt>call(RegName, Request) -&gt; any()</tt></p>
+<p><tt>call(RegName::atom(), Request::term()) -&gt; Reply::term()</tt><br></p>
 </div>
 
 <h3 class="function"><a name="cast-2">cast/2</a></h3>
 <div class="spec">
-<p><tt>cast(RegName, Request) -&gt; any()</tt></p>
+<p><tt>cast(RegName::atom(), Request::term()) -&gt; ok</tt><br></p>
 </div><p>Asynchronous, does not need a reply from the server.</p>
 
 <h3 class="function"><a name="init-2">init/2</a></h3>
 <div class="spec">
-<p><tt>init(Module, Arg) -&gt; any()</tt></p>
+<p><tt>init(Module::module(), Arg::term()) -&gt; stopped</tt><br></p>
 </div>
 
 <h3 class="function"><a name="loop-2">loop/2</a></h3>
@@ -52,7 +52,7 @@
 
 <h3 class="function"><a name="stop-1">stop/1</a></h3>
 <div class="spec">
-<p><tt>stop(Name) -&gt; any()</tt></p>
+<p><tt>stop(RegName::atom()) -&gt; stopped</tt><br></p>
 </div>
 <hr>
 
