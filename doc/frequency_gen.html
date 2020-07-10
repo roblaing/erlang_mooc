@@ -42,12 +42,12 @@
 
 <h3 class="function"><a name="allocate-0">allocate/0</a></h3>
 <div class="spec">
-<p><tt>allocate() -&gt; {ok, Freq::integer()} | {error, no_frequency}</tt><br></p>
+<p><tt>allocate() -&gt; {ok, Freq::integer()} | {error, no_frequency | server_down}</tt><br></p>
 </div><p>allocate a frequency, if possible.</p>
 
 <h3 class="function"><a name="deallocate-1">deallocate/1</a></h3>
 <div class="spec">
-<p><tt>deallocate(Freq::integer()) -&gt; ok | {error, unallocated}</tt><br></p>
+<p><tt>deallocate(Freq::integer()) -&gt; ok | {error, unallocated | server_down}</tt><br></p>
 </div><p>deallocate a frequency.</p>
 
 <h3 class="function"><a name="handle_call-3">handle_call/3</a></h3>

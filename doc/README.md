@@ -273,8 +273,8 @@ A gotcha is two <em>exit reasons</em>, <code>normal</code> and <code>kill</code>
     have trap_exit set to true. Indirectly linked nodes trapping exits receive <code>{'EXIT', FromPid, killed}</code> 
     (note <em>kill</em> is rewritten as <em>killed</em>) so that they don't necessarily die.</dd>
   <dt>normal</dt><dd>Only <em>abnormal</em>, ie Reason is anything but <code>normal</code>, cause linked nodes to call
-    <code>exit(Pid, Reason)</code> and pass on. A supervisor would receive a <code>{'EXIT', FromPid, normal}</code>
-    message.</dd>
+    <code>exit(Reason)</code> to pass on. A supervisor or other directly linked node, however, would receive a 
+    <code>{'EXIT', FromPid, normal}</code> message.</dd>
 </dl>
 
 <h2>Sequential exception handling</h2>

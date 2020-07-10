@@ -49,18 +49,22 @@ loop(Module, State0) ->
 
 -spec call(RegName::atom(), Request::term()) -> Reply::term().
 call(RegName, Request) ->
-  Ref = monitor(process, whereis(RegName)),
-  RegName ! {call, self(), Ref, Request},
-  receive
-    {reply, Ref, Reply} -> 
-      demonitor(Ref, [flush]), 
-      Reply;
-    {'DOWN', Ref, process, Pid, Info} ->
-      io:format("Pid ~p Info ~p", [Pid, Info]),
-      {error, server_down};
-    Unknown ->
-      io:format("Don't know what to do with ~p~n", [Unknown])
-    after 5000 -> exit(timeout)
+  case whereis(RegName) of
+    undefined -> {error, server_down};
+    Pid ->    
+      Ref = monitor(process, Pid),
+      RegName ! {call, self(), Ref, Request},
+      receive
+        {reply, Ref, Reply} -> 
+          demonitor(Ref, [flush]), 
+          Reply;
+        {'DOWN', Ref, process, Pid, Info} ->
+          io:format("Pid ~p Info ~p", [Pid, Info]),
+          {error, server_down};
+        Unknown ->
+          io:format("Don't know what to do with ~p~n", [Unknown])
+        after 5000 -> exit(timeout)
+      end
   end.
 
 -spec cast(RegName::atom(), Request::term()) -> ok.

@@ -16,8 +16,8 @@
         , test/0
         ]).
 -vsn(1.0).
--define(SERVER, gen_server).
-% -define(SERVER, gen_server_light).
+% -define(SERVER, gen_server).
+-define(SERVER, gen_server_light).
 -behaviour(?SERVER).
 
 -type state() :: {Free::[Freq::integer()], Allocated::[{Freq::integer(), Pid::pid()}]}.
@@ -55,7 +55,7 @@ terminate(Reason, {Free, [{_Freq, Pid}|Allocated]}) ->
   exit(Pid, normal), % must be normal to avoid crash in test() because Pid is the shell.
   terminate(Reason, {Free, Allocated}).
 
--spec allocate() -> {ok, Freq::integer()} | {error, no_frequency}.
+-spec allocate() -> {ok, Freq::integer()} | {error, no_frequency | server_down}.
 %% @doc allocate a frequency, if possible.
 allocate() ->
   Free1 = ?SERVER:call(frequency1, free),
@@ -65,7 +65,7 @@ allocate() ->
     Free1 < Free2  -> ?SERVER:call(frequency2, allocate)
   end.
 
--spec deallocate(Freq::integer()) -> ok | {error, unallocated}.
+-spec deallocate(Freq::integer()) -> ok | {error, unallocated | server_down}.
 %% @doc deallocate a frequency.
 deallocate(Freq) ->
   if
