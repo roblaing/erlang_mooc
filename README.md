@@ -70,12 +70,18 @@ shorter and faster as your knowledge grows &mdash; it's vital to focus on "what"
 
 <h4>2.1 Signature</h4>
 
-<q>State what kind of data the desired function consumes and produces.</q>
+<q>State what kind of data the desired function consumes and produces.</q> -- HTDP
 
 What HTDP terms <em>signatures</em> are also commonly known as <em>APIs</em>, <em>contracts</em>, 
 or <em>specifications</em>, the jargon
 used in Erlang's <a href="https://erlang.org/doc/reference_manual/typespec.html">
 <code>-spec</code> and <code>-type</code></a> annotations.
+
+<q>Type annotations provide good documentation of the program.
+
+When you start writing a new module, think about types first and declare them before you write your code.
+Write type specifications for all the exported functions in your module. Do this before you start writing the code.</q>
+-- Joe Armstrong
 
 Here we think in terms of <em>sets</em> (the basic building blocks, ie <em>atoms</em>, of mathematics, 
 as explained in a brilliant lesson by <a href="https://www.youtube.com/watch?v=JsduHKckB04">Eddie Woo</a>), 
@@ -85,6 +91,11 @@ Erlang promotes this thinking with its <a href="http://erlang.org/doc/apps/dialy
 <a href="http://erlang.org/doc/man/typer.html">typer</a> tools.
 
 <em>Tip: use <code>typer foo.erl</code> to check your <code>-spec ...</code> statements by commenting them out after you've written them. Regard it as a testing tool, not a substitute for thinking.</em>
+
+<q>Try to tightly constrain the arguments to exported functions as much as possible.
+The more precise you can be about your types, the better results you will get with dialyzer.
+Using anonymous variables in arguments to a function often results in types that are far less
+specific than you had intended; try to constrain variables as much as possible.</q> -- Joe Armstrong
 
 As does any programming language, Erlang has a 
 <a href="https://www.cs.tufts.edu/~nr/cs257/archive/barbara-liskov/data-abstraction-and-hierarchy.pdf">type hirarchy</a>, 
