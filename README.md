@@ -77,9 +77,9 @@ or <em>specifications</em>, the jargon
 used in Erlang's <a href="https://erlang.org/doc/reference_manual/typespec.html">
 <code>-spec</code> and <code>-type</code></a> annotations.
 
-<q>Type annotations provide good documentation of the program.
+<q>Type annotations provide good documentation of the program.</q>
 
-When you start writing a new module, think about types first and declare them before you write your code.
+<q>When you start writing a new module, think about types first and declare them before you write your code.
 Write type specifications for all the exported functions in your module. Do this before you start writing the code.</q>
 -- Joe Armstrong
 
