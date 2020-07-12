@@ -55,7 +55,7 @@ or alternatively sending
 
 when no response from the server is required, simplified my <code>loop(State)</code> function to:
 
-<code><pre>
+```erlang
 loop(Module, State0) ->
   receive
     {call, Pid, Ref, Request} ->
@@ -70,7 +70,7 @@ loop(Module, State0) ->
       {noreply, State1} = Module:handle_info(Unknown, State0),
       loop(Module, State1)
   end.  
-</pre></code>
+```
 
 This is mainly for educational purposes since OTP applications have builtin loop functions. Similarly, 
 I've written my own versions of <code>call</code> and <code>cast</code> for learning purposes, 
@@ -80,19 +80,19 @@ sticking to the arguments and reply conventions of
 
 What <code>call</code> and <code>cast</code> let us do is create a simple, standard template for client functions:
 
-<code><pre>
+```erlang
 allocate()       -> call(frequency, allocate).
 deallocate(Freq) -> call(frequency, {deallocate, Freq}).
 inject(Freqs)    -> cast(frequency, {inject, Freqs}).
 ...
-</pre></code>
+```
 
 with each of the above having an associated <code>handle_call/3</code> or <code>handle_cast/2</code> function which
 I'll get to shortly.
 
 My version of <code>call/2</code> looks like:
 
-<code><pre>
+```erlang
 call(RegName, Request) ->
   case whereis(RegName) of
     undefined -> {error, server_down}; % Needed for when server is not running in first place.
@@ -111,7 +111,7 @@ call(RegName, Request) ->
         after 5000 -> exit(timeout)
       end
   end.
-</pre></code>
+```
 
 By default, gen_server:call/2 exits with a timeout failure after five seconds. Longer (or shorter) timeouts can be set
 using <a href="https://erlang.org/doc/man/gen_server.html#call-3">call(ServerRef, Request, Timeout) -> Reply</a>.
@@ -132,11 +132,11 @@ If the server crashes before responding, call would receive a message like
 
 My cast looks like:
 
-<code><pre>
+```erlang
 cast(RegName, Request) ->
   RegName ! {cast, Request},
   ok.
-</pre></code>
+```
 
 It returns ok irrespective of whether the server received and handled the message or not.
 
@@ -149,7 +149,7 @@ gen_server_light.erl</a> into a something clients could address as <code>-behavi
 There appears to be an old and new way to do this. The old way, touched on by Professor Thompson, is to export
 behaviour_info/1 and then write something like:
 
-<code><pre>
+```erlang
 behaviour_info(callbacks) ->
   [ {handle_call, 3}
   , {handle_cast, 2}
@@ -158,7 +158,7 @@ behaviour_info(callbacks) ->
   , {terminate, 1}
   ];
 behaviour_info(_) -> undefined.
-</pre></code>
+```
 
 ie list functions the behaviour module expects to find in the client's code.
 
@@ -169,14 +169,14 @@ a google search I found described at
 
 The syntax for <code>-callback</code> is the same as <code>-spec</code>. 
 
-<code><pre>
+```erlang
 -callback handle_call(Request::term(), {From::pid(), Ref::reference()}, State::term()) -> 
   Result::{reply, Reply::term(), NewState::term()}.
 -callback handle_cast(Request::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback handle_info(Info::term(), State::term()) -> Result::{noreply, NewState::term()}.
 -callback init(Args::term()) -> Result::{ok, State::term()}.
 -callback terminate(Reason::term(), State::term()) -> none().
-</pre></code>
+```
 
 This seems to work, though when I use <code>-behaviour(gen_server_light).</code> in the client module, I get a compiler
 warning <q>Warning: behaviour gen_server_light undefined</q>, so something appears to be not quite right.
@@ -190,7 +190,7 @@ The key thing we do need to understand is how to write our own
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_call-3">Module:handle_call(Request, From, State) -> Result</a>
 functions which return <code>{reply, Reply, NewState}</code>:
 
-<code><pre>
+```erlang
 handle_call(allocate, _, {[], Allocated}) -> 
   {reply, {error, no_frequency}, {[], Allocated}};
 handle_call(allocate, {From, Ref}, {[Freq|Free], Allocated}) ->
@@ -209,16 +209,16 @@ handle_call({deallocate, Freq}, From, {Free, Allocated}) ->
 
 handle_call(free, _From, {Free, Allocated}) ->
    {reply, length(Free), {Free, Allocated}}.
-</pre></code>
+```
 
 When we don't need a response from the server, we use 
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_cast-2">Module:handle_cast(Request, State) -> Result</a>
 which returns <code>{noreply, NewState}</code>.
 
-<code><pre>
+```erlang
 handle_cast({inject, Freqs}, {Free, Allocated}) ->
   {noreply, {Free ++ Freqs, Allocated}}.
-</pre></code>
+```
 
 Besides handle_call and handle_case, there's
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_info-2">Module:handle_info(Info, State) -> Result</a>
@@ -226,15 +226,15 @@ which seems specifically designed to respond to timeouts and exit messages.
 
 To trap exits with gen_server, I modified the client init/1 function to:
 
-<code><pre>
+```erlang
 init(Init) ->
   process_flag(trap_exit, true),
   {ok, Init}.
-</pre></code>
+```
 
 and my handle_info looks like:
 
-<code><pre>
+```erlang
 handle_info({'EXIT', Pid, Reason}, {Free, Allocated}) ->
   io:format("~p exited: ~p~n", [Pid, Reason]),
   case lists:keyfind(Pid, 2, Allocated) of
@@ -247,7 +247,7 @@ handle_info({'EXIT', Pid, Reason}, {Free, Allocated}) ->
 handle_info(Info, State) ->
   io:format("Received unknown message ~p~n", [Info]),
   {noreply, State}.
-</pre></code>
+```
 
 <h1><a href="https://erlang.org/doc/reference_manual/errors.html">Error Handling</a></h1>
 
@@ -291,14 +291,14 @@ Only use these to exit deeply nested recursion as in parsers.
 
 There are three types of exceptions, each of which creates a different Class for catch:
 
-<code><pre>
+```erlang
 try Expr
 catch
     throw:Term -> Term;
     exit:Reason -> {'EXIT', Reason}
     error:Reason:Stk -> {'EXIT', {Reason, Stk}}
 end
-</pre></code>
+```
 
 <dl>
   <dt><a href="https://erlang.org/doc/man/erlang.html#exit-2">exit(Pid, Reason) -> true</a> or 
@@ -343,7 +343,7 @@ https://www.youtube.com/watch?v=0jsdXFUvQKE&amp;list=PLR812eVbehlwq4qbqswOWH7NLK
 Joe Armstrong's provides an example which I've modified since he left function F out of the argument list for pmap,
 which I assume is a typo, to look like this:
 
-<code><pre>
+```erlang
 pmap(F, Xs) ->
   S = self(),
   Pids = [do(S, F, X) || X &lt;- Xs],
@@ -351,7 +351,7 @@ pmap(F, Xs) ->
 
 do(Parent, F, X) ->
   spawn(fun() -> Parent ! {self(), F(X)} end).
-</pre></code>
+```
 
 <h2>Futures</h2>
 
@@ -360,7 +360,7 @@ block doesn't need to be in the function that makes the initial call, but can be
 
 This means <code>call/2</code> 
 
-<code><pre>
+```erlang
 call(RegName, Request) ->
   Ref = monitor(process, whereis(RegName)),
   RegName ! {call, self(), Ref, Request},
@@ -374,11 +374,11 @@ call(RegName, Request) ->
     Unknown ->
       io:format("Don't know what to do with ~p~n", [Unknown])
   end.
-</pre></code>
+```
 
 can be split into two to look like what JavaScript etc call <code>futures</code>:
 
-<code><pre>
+```erlang
 promise(RegName, Request) ->
   Ref = monitor(process, whereis(RegName)),
   RegName ! {call, self(), Ref, Request},
@@ -395,7 +395,7 @@ yield(Ref) ->
     Unknown ->
       io:format("Don't know what to do with ~p~n", [Unknown])
   end.
-</pre></code>
+```
 
 <h1>Common problems</h1>
 
