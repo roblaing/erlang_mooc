@@ -188,27 +188,34 @@ can be used by tools to produce documentation or find discrepancies.</q>
 
 The key thing we do need to understand is how to write our own
 <a href="https://erlang.org/doc/man/gen_server.html#Module:handle_call-3">Module:handle_call(Request, From, State) -> Result</a>
-functions which return <code>{reply, Reply, NewState}</code>:
+functions which return <code>{reply, Reply, NewState}</code>.
+
+Note the second argument <code>From</code> is a tuple <code>{Pid, Ref}</code>. This tripped me up rewriting the code.
 
 ```erlang
 handle_call(allocate, _, {[], Allocated}) -> 
   {reply, {error, no_frequency}, {[], Allocated}};
-handle_call(allocate, {From, Ref}, {[Freq|Free], Allocated}) ->
-  link(From),
-  {reply, {ok, Freq}, {Free, [{Freq, From}|Allocated]}};
+handle_call(allocate, {Pid, _}, {[Freq|Free], Allocated}) ->
+  link(Pid),
+  {reply, {ok, Freq}, {Free, [{Freq, Pid}|Allocated]}};
 
-handle_call({deallocate, Freq}, From, {Free, Allocated}) ->
-  case lists:member({Freq, From}, Allocated) of
-    true ->
-      unlink(From),
-      {reply, ok, {[Freq|Free], proplists:delete(Freq, Allocated)}};
+%% @doc Assumes deallocate request comes from the associated Pid. Could add another error message for when that's not the case.
+handle_call({deallocate, Freq}, {Pid, _Ref}, {Free, Allocated}) ->
+  case lists:member({Freq, Pid}, Allocated) of
+    true  ->
+      unlink(Pid),
+      {reply, ok, {[Freq|Free], lists:delete({Freq, Pid}, Allocated)}};
     false ->
       io:format("Unallocated frequency ~p~n", [Freq]),
       {reply, {error, unallocated}, {Free, Allocated}}
   end;
 
 handle_call(free, _From, {Free, Allocated}) ->
-   {reply, length(Free), {Free, Allocated}}.
+   {reply, length(Free), {Free, Allocated}};
+
+handle_call(report, _From, {Free, Allocated}) ->
+  io:format("Free: ~p Allocated ~p~n", [length(Free), length(Allocated)]),
+  {reply, ok, {Free, Allocated}}.
 ```
 
 When we don't need a response from the server, we use 
